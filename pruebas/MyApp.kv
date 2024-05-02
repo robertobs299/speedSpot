@@ -1,0 +1,64 @@
+registroScreen:
+<registroScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: 'Registro'
+            size_hint_y: None
+            height: '48dp'
+
+        TextInput:
+            id: email
+            hint_text: 'Email'
+            multiline: False
+
+        TextInput:
+            id: password
+            hint_text: 'Contraseña'
+            password: True
+            multiline: False
+
+        TextInput:
+            id: confirm_password
+            hint_text: 'Confirmar Contraseña'
+            password: True
+            multiline: False
+
+        TextInput:
+            id: username
+            hint_text: 'Nombre de Usuario'
+            multiline: False
+
+        TextInput:
+            id: name
+            hint_text: 'Nombre'
+            multiline: False
+
+        TextInput:
+            id: surname
+            hint_text: 'Apellidos'
+            multiline: False
+
+        TextInput:
+            id: postal_code
+            hint_text: 'Código Postal(buscardor)'
+            multiline: False
+
+        TextInput:
+            id: phone
+            hint_text: 'Teléfono'
+            multiline: False
+
+        Spinner:
+            id: gender
+            text: 'Sexo'
+            values: ['Hombre', 'Mujer', 'Otro']
+
+        Button:
+            text: 'Registrarse'
+            size_hint_y: None
+            height: '48dp'
+            on_press: root.registrar(email.text, password.text, username.text, name.text, surname.text, postal_code.text, phone.text,gender.text)
