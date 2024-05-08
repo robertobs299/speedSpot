@@ -1,4 +1,5 @@
 registroScreen:
+
 <registroScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -42,10 +43,10 @@ registroScreen:
             hint_text: 'Apellidos'
             multiline: False
 
-        TextInput:
+        Spinner:
             id: postal_code
-            hint_text: 'Código Postal(buscardor)'
-            multiline: False
+            text: 'Código Postal'
+            values: root.get_postal_codes()
 
         TextInput:
             id: phone
@@ -61,4 +62,5 @@ registroScreen:
             text: 'Registrarse'
             size_hint_y: None
             height: '48dp'
-            on_press: root.registrar(email.text, password.text, username.text, name.text, surname.text, postal_code.text, phone.text,gender.text)
+            on_press: root.registrar(email.text, password.text, confirm_password.text, username.text, name.text, surname.text, postal_code.text, phone.text,gender.text)
+

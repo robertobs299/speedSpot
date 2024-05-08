@@ -1,0 +1,34 @@
+mainScreen:
+    <mainScreen>:
+        ScrollView:
+            MDList:
+                id: quedadas_list
+
+                # Añade aquí tus widgets para cada quedada, por ejemplo:
+                OneLineListItem:
+                    text: "Quedada 1"
+                    # Agrega más propiedades según necesites
+
+                # Puedes añadir más elementos de la lista aquí
+                # El ScrollView permitirá desplazarse si la lista es muy larga
+
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: 0, dp(16), dp(16), 0
+
+            MDNavigationDrawerMenu:
+                MDNavigationDrawerLabel:
+                    text: "Mail"
+
+                MDNavigationDrawerItem:
+                    MDNavigationDrawerItemLeadingIcon:
+                        icon: "account"
+                    MDNavigationDrawerItemText:
+                        text: "Inbox"
+                    MDNavigationDrawerItemTrailingText:
+                        text: "24"
+
+            # Puedes agregar más elementos de la barra de navegación aquí
+            # Por ejemplo, otros ítems o menús
+
+# Resto de tu código...
