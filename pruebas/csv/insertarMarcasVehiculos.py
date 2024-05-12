@@ -9,9 +9,9 @@ cursor = conn.cursor()
 # Insertar datos en la base de datos
 for _, row in df.iterrows():
     cursor.execute('''
-    INSERT INTO marca (id_marca, marca, tipo) VALUES (%s, %s, %s)
+    INSERT INTO Marca (id_marca, marca, tipo) VALUES (%s, %s, %s)
     ''', (row['id'], row['nombre'], row['tipo']))
-
+    print("cargado con exito")
 # Guardar los cambios y cerrar la base de datos
 conn.commit()
 conn.close()

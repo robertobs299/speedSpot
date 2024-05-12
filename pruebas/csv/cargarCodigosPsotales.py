@@ -9,8 +9,9 @@ cursor = conn.cursor()
 # Insertar datos en la base de datos
 for _, row in df.iterrows():
     cursor.execute('''
-    INSERT INTO postal_code (cp, localidad) VALUES (%s, %s)
+    INSERT INTO Postal_code (cp, localidad) VALUES (%s, %s)
     ''', (row['codigo_postal'], row['nombre']))
+    print("cargado con exito")
 
 # Guardar los cambios y cerrar la base de datos
 conn.commit()
