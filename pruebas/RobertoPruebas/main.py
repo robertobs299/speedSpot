@@ -1,13 +1,11 @@
 import hashlib
 import re
-from kivy.app import App
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivymd.app import MDApp
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.boxlayout import BoxLayout
 
-from pruebas import conexion
+from pruebas.RobertoPruebas import conexion
 
 
 def validate_email(email):
@@ -23,7 +21,7 @@ def is_valid_phone_number(phone_number):
     phone_number_pattern = re.compile(r'^\+?[1-9][0-9]{7,14}$')
     return bool(phone_number_pattern.match(phone_number))
 
-def exit_user(username):
+def exist_user(username):
     conn = conexion.connect_to_database()
     cursor = conn.cursor()
     cursor.execute("SELECT id_user FROM Login WHERE username = %s", (username,))

@@ -1,6 +1,6 @@
-from pruebas import conexion
+from pruebas.RobertoPruebas import conexion
 import pandas as pd
-import mysql.connector
+
 conn = conexion.connect_to_database()
 # Leer el archivo CSV
 df = pd.read_csv('marcasVehiculos.csv')
