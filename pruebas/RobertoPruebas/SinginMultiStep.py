@@ -135,11 +135,12 @@ MDFloatLayout:
         bold: True
         pos_hint: {"center_x": .8, "center_y": .8}    
         font_style: "H4" 
-    MDFloatingActionButton:
+    MDIconButton:
+        id: icon1_progreso
         icon: "numeric-1-circle"
         pos_hint: {"center_x": .14, "center_y": .65}
-        size_hint: .1, .1
-        md_bg_color: app.theme_cls.primary_color
+        user_font_size: "50sp"
+        theme_text_color: "Custom"
     MDProgressBar:
         id: progress1
         size_hint_x: .3
