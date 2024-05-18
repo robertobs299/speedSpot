@@ -6,6 +6,44 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivy.uix.image import Image
 from kivy.metrics import dp
+import mysql.connector
+
+def connect_to_database():
+    conn = mysql.connector.connect(
+        host="speedspot-db-do-user-16519834-0.c.db.ondigitalocean.com",
+        port="25060",
+        user="doadmin",
+        password="AVNS_DCLwHjp1kyF7kj3AsHv",
+        database="Speedspot"
+    )
+    return conn
+
+class Quedada:
+    def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin, max_personas, numero_personas):
+        self.id_quedada = id_quedada
+        self.nombre = nombre
+        self.descripcion = descripcion
+        self.user_organiza = user_organiza
+        self.fecha = fecha
+        self.hora = hora
+        self.coordenadas = coordenadas
+        self.direccion_fin = direccion_fin
+        self.max_personas = max_personas
+        self.numero_personas = numero_personas
+
+    @staticmethod
+    def get_last_five():
+        conn = connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id_quedada, nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin, max_personas, numero_personas FROM Quedada LIMIT 5")
+        result = cursor.fetchall()
+        quedadas = []
+        if result:
+            for row in result:
+                quedada = Quedada(*row)
+                quedadas.append(quedada)
+        conn.close()
+        return quedadas
 
 class MainApp(MDApp):
     historial_list = []
@@ -16,14 +54,14 @@ class MainApp(MDApp):
         return Builder.load_file('bbar.kv')
 
     def on_start(self):
-        # Agregar algunas tarjetas al iniciar la app
-        for i in range(5):
-            self.add_card()
+        quedadas = Quedada.get_last_five()
+        for quedada in quedadas:
+            self.add_card(quedada)
 
-    def add_card(self):
+    def add_card(self, quedada):
         card = MDCard(
             size_hint=(None, None),
-            size=(dp(400), dp(460)),  # Aumentamos la altura para que la imagen tenga más espacio
+            size=(dp(400), dp(460)),
             pos_hint={"center_x": 0.5},
             elevation=10,
             radius=[15],
@@ -36,21 +74,21 @@ class MainApp(MDApp):
         )
 
         image = Image(
-            source='moto.jpg',
+            source="moto.jpg",  # Reemplazar con quedada.imagen_url si se tiene la URL de la imagen
             size_hint_y=None,
-            allow_stretch=True,  # Permite que la imagen se estire para llenar el espacio disponible
-            height=dp(250),  # Ajustamos la altura de la imagen
+            allow_stretch=True,
+            height=dp(250),
         )
 
         title_label = MDLabel(
-            text='Quedada en Chernobyl',
+            text=quedada.nombre,
             halign='center',
             size_hint_y=None,
             height=dp(30),
         )
 
         participants_label = MDLabel(
-            text='Nº de participantes: 5',
+            text=f'Nº de participantes: {quedada.numero_personas}',
             size_hint_y=None,
             height=dp(30),
         )
@@ -62,14 +100,14 @@ class MainApp(MDApp):
         )
 
         description_label = MDLabel(
-            text='Vamos a dar una vueltecilla por el Guadalquivir y si eso nos fumamos unos porrillos o lo que la situación requiera jejejejeje',
+            text=quedada.descripcion,
             size_hint_x=0.85,
         )
 
-        # Crear el botón de inscripción
         sign_up_button = MDRaisedButton(
             text='Inscribirse',
             md_bg_color=self.theme_cls.primary_color,
+            size_hint_x=0.15,
             on_release=self.toggle_sign_up
         )
 
@@ -83,10 +121,11 @@ class MainApp(MDApp):
 
         card.add_widget(box_layout)
         card.data = {
-            "image": 'moto.jpg',
-            "title": 'Quedada en Chernobyl',
-            "participants": 'Nº de participantes: 5',
-            "description": 'Vamos a dar una vueltecilla por el Guadalquivir y si eso nos fumamos unos porrillos o lo que la situación requiera jejejejeje',
+            "id": quedada.id_quedada,
+            "image": "default_image.jpg",  # Reemplazar con quedada.imagen_url si se tiene la URL de la imagen
+            "title": quedada.nombre,
+            "participants": f'Nº de participantes: {quedada.numero_personas}',
+            "description": quedada.descripcion,
         }
 
         self.root.ids.card_list.add_widget(card)
