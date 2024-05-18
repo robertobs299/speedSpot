@@ -7,7 +7,7 @@ from pruebas.RobertoPruebas import conexion
 
 class Quedada:
     def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin,
-                 max_personas, numero_personas):
+                 max_personas, numero_personas, active):
         self.id_quedada = id_quedada
         self.nombre = nombre
         self.descripcion = descripcion
@@ -18,6 +18,7 @@ class Quedada:
         self.direccion_fin = direccion_fin
         self.max_personas = max_personas
         self.numero_personas = numero_personas
+        self.active = active
 
     @staticmethod
     def recuperar_quedadas(filtros=None):
@@ -49,7 +50,7 @@ class Quedada:
         if condiciones:
             query += " WHERE " + " AND ".join(condiciones)
 
-        query += "LIMIT 10"
+        query += "LIMIT 50"
 
         cursor.execute(query, valores)
 
@@ -87,6 +88,18 @@ class Quedada:
         conn.commit()
         conn.close()
 
+    @staticmethod
+    def get_last_five():
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Quedada LIMIT 5")
+        result = cursor.fetchall()
+        quedadas = []
+        if result:
+            for row in result:
+                quedada = Quedada(*row)
+                quedadas.append(quedada)
+        return quedadas
 
 
 # Ejemplo de uso con filtros
@@ -96,3 +109,6 @@ filtros = {
     'numero_personas': 10
 }
 
+quedadas = Quedada.get_last_five()
+for quedada in quedadas:
+    print(quedada.nombre)

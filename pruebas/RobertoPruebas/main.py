@@ -40,7 +40,7 @@ class registroScreen(BoxLayout):
     def get_postal_codes(self):
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
-        cursor.execute("SELECT cp FROM postal_code")
+        cursor.execute("SELECT cp FROM Postal_code")
         result = cursor.fetchall()
         conn.close()
 
@@ -62,7 +62,7 @@ class registroScreen(BoxLayout):
             errores += "Las contraseñas no coinciden\n"
         if not is_valid_phone_number(phone):
             errores += "El número de teléfono no es válido\n"
-        if exit_user(username):
+        if exist_user(username):
             errores += "El nombre de usuario ya existe\n"
         # la idea es recoger los errores y mostrarlos en un popup
         if sexo == "Hombre":
@@ -82,7 +82,7 @@ class registroScreen(BoxLayout):
             cursor = conn.cursor()
 
             # Buscar el ID del código postal
-            cursor.execute("SELECT id_cp FROM postal_code WHERE cp LIKE %s", (str(postalcode),))
+            cursor.execute("SELECT id_cp FROM Postal_code WHERE cp LIKE %s", (str(postalcode),))
             result = cursor.fetchone()  # Obtener el resultado de la consulta
 
             if result:

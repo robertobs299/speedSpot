@@ -1,0 +1,27 @@
+#:import ScrollView kivy.uix.scrollview.ScrollView
+#:import BoxLayout kivy.uix.boxlayout.BoxLayout
+#:import Card kivymd.uix.card.MDCard
+#:import MDLabel kivymd.uix.label.MDLabel
+
+<MyCard>:
+    orientation: "vertical"
+    size_hint: None, None
+    size: "280dp", "180dp"
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        MDLabel:
+            id: title
+            theme_text_color: "Secondary"
+
+        MDLabel:
+            id: description
+            theme_text_color: "Secondary"
+
+<MyScrollView>:
+    BoxLayout:
+        id: box_layout
+        orientation: 'vertical'
+        size_hint_y: None
+        height: self.minimum_height
