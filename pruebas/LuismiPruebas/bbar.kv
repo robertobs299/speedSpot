@@ -1,10 +1,21 @@
+#:import dp kivy.metrics.dp
+
 BoxLayout:
     orientation: 'vertical'
 
-    MDToolbar:
-        title: "SpeedSpot"
-        md_bg_color: .2, .2, .2, 1
-        specific_text_color: "#FFBF00"
+    MDBoxLayout:
+        size_hint_y: None
+        height: dp(56)
+        md_bg_color: 0.2, 0.2, 0.2, 1
+        padding: dp(10)
+        spacing: dp(10)
+
+        MDLabel:
+            text: "SpeedSpot"
+            font_style: "H6"
+            size_hint_x: None
+            width: dp(200)
+            color: "#FFBF00"
 
     MDBottomNavigation:
 
@@ -29,7 +40,7 @@ BoxLayout:
             icon: 'plus-circle'
 
             MDLabel:
-                text: "Aqui habrian quedadas :D"
+                text: "Aquí habrían quedadas :D"
                 halign: 'center'
 
         MDBottomNavigationItem:
