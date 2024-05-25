@@ -302,7 +302,7 @@ class MainApp(MDApp):
         self.root.ids.icon1_progreso.icon = "check-circle"
 
     def next2(self):
-        if not self.root.ids.email.text or not self.root.ids.telefono.text or not self.root.ids.cp.text:
+        if not self.root.ids.direccion.text or not self.root.ids.codigo_postal.text or not self.root.ids.numero.text:
             # Si alguno de los campos está vacío, agitar el botón y salir del método
             anim = Animation(x=self.root.ids.nombre.x + 10, duration=0.1) + Animation(x=self.root.ids.nombre.x - 10,
                                                                                       duration=0.1)
@@ -321,14 +321,14 @@ class MainApp(MDApp):
         self.root.ids.icon1_progreso.text_color = 0, 0, 0, 1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.ids.progress1)
-        self.root.ids.icon1_progreso.icon = "numeric-1-circle"
+        self.root.ids.icon1_progreso.icon = "information"
 
     def previous2(self):
         self.root.ids.slide.load_previous()
         self.root.ids.icon2_progreso.text_color = 0, 0, 0, 1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.ids.progress2)
-        self.root.ids.icon2_progreso.icon = "numeric-2-circle"
+        self.root.ids.icon2_progreso.icon = "map-marker"
 
     def open_menu(self, button):
         menu_items = [{"text": f"Opción {i}"} for i in range(5)]
