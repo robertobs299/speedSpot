@@ -1,6 +1,4 @@
-#:import dp kivy.metrics.dp
-
-BoxLayout:
+MDBoxLayout:
     orientation: 'vertical'
 
     MDBoxLayout:
@@ -19,11 +17,17 @@ BoxLayout:
             theme_text_color: "Custom"
             text_color: "#FFBF00"  # Color ámbar constante
 
-        MDIconButton:
-            icon: "nombre_del_icono.png"  # Reemplaza con el nombre del icono que deseas usar
-            theme_text_color: "Custom"
-            text_color: app.theme_cls.primary_color if app.theme_cls.theme_style == "Dark" else app.theme_cls.primary_color
-            on_release: app.toggle_theme()  # Llama a la función que cambia el tema cuando se presiona el botón
+        Widget:  # Para empujar el contenido a la izquierda
+            size_hint_x: None
+            width: dp(20)
+
+        MDSwitch:
+            id: theme_switch
+            size_hint: None, None
+            size: dp(48), dp(48)
+            pos_hint: {'center_y': 0.4, 'center_x': 0.15}  # Ajuste de posición
+            on_active: app.toggle_theme()
+
 
     MDBottomNavigation:
         MDBottomNavigationItem:
