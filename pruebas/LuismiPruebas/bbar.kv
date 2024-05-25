@@ -6,7 +6,7 @@ BoxLayout:
     MDBoxLayout:
         size_hint_y: None
         height: dp(56)
-        md_bg_color: 0.2, 0.2, 0.2, 1
+        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == "Dark" else app.theme_cls.bg_light
         padding: dp(10)
         spacing: dp(10)
 
@@ -15,10 +15,17 @@ BoxLayout:
             font_style: "H6"
             size_hint_x: None
             width: dp(200)
-            color: "#FFBF00"
+            color: "#FFBF00"  # Mantener en ámbar
+            theme_text_color: "Custom"
+            text_color: "#FFBF00"  # Color ámbar constante
+
+        MDIconButton:
+            icon: "nombre_del_icono.png"  # Reemplaza con el nombre del icono que deseas usar
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.primary_color if app.theme_cls.theme_style == "Dark" else app.theme_cls.primary_color
+            on_release: app.toggle_theme()  # Llama a la función que cambia el tema cuando se presiona el botón
 
     MDBottomNavigation:
-
         MDBottomNavigationItem:
             name: 'screen 1'
             text: "Inicio"
@@ -39,9 +46,78 @@ BoxLayout:
             text: "Añadir quedada"
             icon: 'plus-circle'
 
-            MDLabel:
-                text: "Aquí habrían quedadas :D"
-                halign: 'center'
+            ScrollView:
+                id: add_meetup_scrollview
+                size_hint_y: None
+                height: self.parent.height - dp(56)  # Ajuste de la altura del ScrollView
+                do_scroll_y: True
+                BoxLayout:
+                    orientation: "vertical"
+                    padding: "10dp"
+                    spacing: "10dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    MDTextField:
+                        id: nombre
+                        hint_text: "Nombre de la quedada"
+                        mode: "rectangle"
+                        size_hint_y: None
+                        height: "48dp"
+
+                    MDTextField:
+                        id: descripcion
+                        hint_text: "Descripción"
+                        mode: "rectangle"
+                        multiline: True
+                        size_hint_y: None
+                        height: "96dp"
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: "10dp"
+
+                        MDRaisedButton:
+                            id: fecha
+                            text: "Fecha"
+                            on_release: app.show_date_picker()
+
+                        MDRaisedButton:
+                            id: hora
+                            text: "Hora"
+                            on_release: app.show_time_picker()
+
+                    MDTextField:
+                        id: max_personas
+                        hint_text: "Cantidad de personas"
+                        mode: "rectangle"
+                        input_type: "number"
+                        size_hint_y: None
+                        height: "48dp"
+
+                    MDTextField:
+                        id: direccion
+                        hint_text: "Dirección"
+                        mode: "rectangle"
+                        multiline: True
+                        size_hint_y: None
+                        height: "96dp"
+
+                    MDRelativeLayout:
+                        size_hint_y: None
+                        height: "300dp"
+                        ClickableMapView:
+                            id: map_view
+                            lat:50.6
+                            lon:3.05
+                            zoom:13
+
+                    MDRaisedButton:
+                        text: "Crear Quedada"
+                        pos_hint: {"center_x": 0.5}
+                        size_hint_y: None
+                        height: "48dp"
+                        on_release: app.create_meetup()
 
         MDBottomNavigationItem:
             name: 'screen 3'
