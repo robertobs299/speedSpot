@@ -1,9 +1,11 @@
+from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.bubble import Bubble
 from kivy_garden.mapview import MapView, MapMarkerPopup
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 
 from pruebas.RobertoPruebas import conexion
@@ -65,86 +67,153 @@ class ClickableMapView(MapView):
         self.parent.scroll_enabled = True
         return super().on_touch_up(touch)
 
-KV = '''
-BoxLayout:
-    orientation: "vertical"
 
-    MDLabel:
-        text: "Crear Quedada"
-        theme_text_color: "Primary"
-        halign: "center"
-        font_style: "H5"
-        size_hint_y: 0.1
+KV = """
+#:import MapSource kivy_garden.mapview.MapSource
 
-    ScrollView:
-        scroll_enabled: True
-        size_hint_y: 0.9
-        bar_width: '10dp'
-        BoxLayout:
-            orientation: "vertical"
-            padding: "10dp"
-            spacing: "2dp"
-
-            MDTextField:
-                id: nombre
-                hint_text: "Nombre de la quedada"
-                mode: "rectangle"
-                size_hint_y: 0.1
-
-            MDTextField:
-                id: descripcion
-                hint_text: "Descripción"
-                mode: "rectangle"
-                multiline: True
-                size_hint_y: 0.2
-
-            MDBoxLayout:
-                orientation: "horizontal"
-                spacing: "2dp"
-                size_hint_y: 0.1
-
+MDFloatLayout:
+    MDCard:
+        size_hint: 1, 1
+        pos_hint: {"center_x": .5, "center_y": .5}
+        Carousel:
+            id: slide
+            MDFloatLayout:
+                MDTextField:
+                    id: nombre
+                    hint_text: "Nombre"
+                    pos_hint: {"center_x": .5, "center_y": .6}
+                    size_hint_x: .8
+                MDTextField:
+                    id: descripcion
+                    hint_text: "Descripcion"
+                    pos_hint: {"center_x": .5, "center_y": .45}
+                    size_hint_x: .8
+                    size_hint_y: .2
+                    multiline: True
+                MDTextField:
+                    id: n-participantes
+                    hint_text: "Maximos Participantes"
+                    pos_hint: {"center_x": .5, "center_y": .3}
+                    size_hint_x: .8
                 MDRaisedButton:
                     id: fecha
                     text: "Fecha"
+                    pos_hint: {"center_x": .3, "center_y": .2}
+                    size_hint_x: .39
                     on_release: app.show_date_picker()
-
                 MDRaisedButton:
                     id: hora
                     text: "Hora"
+                    pos_hint: {"center_x": .7, "center_y": .2}
+                    size_hint_x: .39
                     on_release: app.show_time_picker()
+                MDRaisedButton:
+                    id: next1
+                    text: "Siguiente"
+                    pos_hint: {"center_x": .5, "center_y": .1}
+                    size_hint_x: .8
+                    on_release: app.next1()
 
-            MDTextField:
-                id: max_personas
-                hint_text: "Cantidad de personas"
-                mode: "rectangle"
-                input_type: "number"
-                size_hint_y: 0.1
+            MDFloatLayout:
+                Spinner:
+                    id: tipo_via
+                    text: "Tipo de vía"
+                    values: ["Calle", "Avenida", "Plaza", "Paseo", "Camino"]
+                    pos_hint: {"center_x": .5, "center_y": .6}
+                    size_hint_x: .8 
+                    size_hint_y: .1
+                    text_align: "left"                 
 
-            MDTextField:
-                id: direccion
-                hint_text: "Dirección"
-                mode: "rectangle"
-                multiline: True
-                size_hint_y: 0.1
+                MDTextField:
+                    id: direccion
+                    hint_text: "Direccion"
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    size_hint_x: .8
+                MDTextField:
+                    id: cp
+                    hint_text: "Codigo Postal"
+                    pos_hint: {"center_x": .5, "center_y": .4}
+                    size_hint_x: .8 
+                MDTextField:
+                    id: numero
+                    hint_text: "numero"
+                    pos_hint: {"center_x": .5, "center_y": .3}
+                    size_hint_x: .8 
+                MDLabel:
+                    id: error_cp
+                    text: "El código postal no es válido"
+                    pos_hint: {"center_x": .5, "center_y": .25}
+                    halign: "center"         
+                    theme_text_color: "Error" 
+                    opacity: 0        
+                MDRaisedButton:
+                    text: "Anterior"
+                    pos_hint: {"center_x": .3, "center_y": .2}
+                    size_hint_x: .39
+                    on_release: app.previous1()
+                MDRaisedButton:
+                    id: next2
+                    text: "Siguiente"
+                    pos_hint: {"center_x": .7, "center_y": .2}
+                    size_hint_x: .39
+                    on_release: app.next2()
 
-            MDRelativeLayout:
-                size_hint_y: 0.4
-                ClickableMapView:
-                    id: map_view
-                    lat:50.6
-                    lon:3.05
-                    zoom:13
-                    size_hint: 1, 1
-                    size: self.parent.size
+            MDFloatLayout:
+                MDRelativeLayout:
+                    ClickableMapView:
+                        id: map_view
+                        lat:50.6
+                        lon:3.05
+                        zoom:13 
+                        size_hint: .9, .5  # Ajusta el tamaño del mapa
+                        pos_hint: {"center_x": .5, "center_y": .4}
+                MDRaisedButton:
+                    text: "Anterior"
+                    pos_hint: {"center_x": .3, "center_y": .1}
+                    size_hint_x: .39
+                    on_press: app.previous2()
+                MDRaisedButton:
+                    text: "Registrar"
+                    pos_hint: {"center_x": .7, "center_y": .1}
+                    size_hint_x: .39
+    
+    MDLabel:
+        text: "Crear Quedada"
+        bold: True
+        pos_hint: {"center_x": .8, "center_y": .9}    
+        font_style: "H4" 
+    MDIconButton:
+        id: icon1_progreso
+        icon: "information"
+        pos_hint: {"center_x": .14, "center_y": .75}
+        user_font_size: "50sp"
+        theme_text_color: "Custom"
+    MDProgressBar:
+        id: progress1
+        size_hint_x: .3
+        size_hint_y: .015
+        pos_hint: {"center_x": .315, "center_y": .75}
 
-            MDRaisedButton:
-                text: "Crear Quedada"
-                pos_hint: {"center_x": 0.5}
-                on_release: app.create_meetup()
-                size_hint_y: 0.1
-                on_release: app.create_meetup()
-'''
+    MDIconButton:
+        id: icon2_progreso
+        icon: "map-marker"
+        pos_hint: {"center_x": .5, "center_y": .75}
+        user_font_size: "50sp"
+        theme_text_color: "Custom"
+    MDProgressBar:
+        id: progress2
+        size_hint_x: .3
+        size_hint_y: .015
+        pos_hint: {"center_x": .68, "center_y": .75}
 
+    MDIconButton:
+        id: icon3_progreso
+        icon: "map"
+        pos_hint: {"center_x": .86, "center_y": .75}
+        user_font_size: "50sp"
+        theme_text_color: "Custom" 
+
+"""
 
 def insertarCoordenadas(latitud, longitud):
     conn = conexion.connect_to_database()
@@ -208,6 +277,55 @@ class MainApp(MDApp):
               f"Direccion: {direccion}"
               f"Latitud: {latitud}"
               f"Longitud: {longitud}")
+
+    def next1(self):
+        self.root.ids.slide.load_next(mode="next")
+        self.root.ids.icon1_progreso.text_color = self.theme_cls.primary_color
+        anim = Animation(value=100, duration=1)
+        anim.start(self.root.ids.progress1)
+        self.root.ids.icon1_progreso.icon = "check-circle"
+
+    def next2(self):
+        if not self.root.ids.email.text or not self.root.ids.telefono.text or not self.root.ids.cp.text:
+            # Si alguno de los campos está vacío, agitar el botón y salir del método
+            anim = Animation(x=self.root.ids.nombre.x + 10, duration=0.1) + Animation(x=self.root.ids.nombre.x - 10,
+                                                                                      duration=0.1)
+            anim.repeat = 3
+            anim.start(self.root.ids.next2)
+            return
+
+        self.root.ids.slide.load_next(mode="next")
+        self.root.ids.icon2_progreso.text_color = self.theme_cls.primary_color
+        anim = Animation(value=100, duration=1)
+        anim.start(self.root.ids.progress2)
+        self.root.ids.icon2_progreso.icon = "check-circle"
+
+    def previous1(self):
+        self.root.ids.slide.load_previous()
+        self.root.ids.icon1_progreso.text_color = 0, 0, 0, 1
+        anim = Animation(value=0, duration=1)
+        anim.start(self.root.ids.progress1)
+        self.root.ids.icon1_progreso.icon = "numeric-1-circle"
+
+    def previous2(self):
+        self.root.ids.slide.load_previous()
+        self.root.ids.icon2_progreso.text_color = 0, 0, 0, 1
+        anim = Animation(value=0, duration=1)
+        anim.start(self.root.ids.progress2)
+        self.root.ids.icon2_progreso.icon = "numeric-2-circle"
+
+    def open_menu(self, button):
+        menu_items = [{"text": f"Opción {i}"} for i in range(5)]
+        menu = MDDropdownMenu(
+            caller=button,
+            items=menu_items,
+            width_mult=4,
+            callback=self.menu_callback
+        )
+        menu.open()
+
+    def menu_callback(self, instance):
+        print(instance.text)
 
 if __name__ == '__main__':
     MainApp().run()
