@@ -13,10 +13,6 @@ from kivymd.uix.pickers import MDTimePicker, MDDatePicker
 from pruebas.RobertoPruebas import conexion
 from pruebas.RobertoPruebas.Clases.Quedada import Quedada
 
-def insertarCoordenadas(latitud, longitud):
-    conn = conexion.connect_to_database()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO Coordenadas (latitud, longitud) VALUES (%s, %s)", (latitud, longitud))
 
 def insertarCoordenadas(latitud, longitud):
     conn = conexion.connect_to_database()
@@ -123,8 +119,8 @@ class MainApp(MDApp):
 
     def add_card(self, quedada):
         card = MDCard(
-            size_hint=(None, None),
-            size=(dp(400), dp(460)),
+            size_hint=(1, None),
+            height=dp(460),
             pos_hint={"center_x": 0.5},
             elevation=10,
             radius=[15],

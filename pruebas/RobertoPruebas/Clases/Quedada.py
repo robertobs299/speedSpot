@@ -84,7 +84,7 @@ class Quedada:
         conn.close()
 
     @staticmethod
-    def get_last_five():
+    def get_last_five(): # es mentira te las devuelve todas jijiji era bait
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Quedada")  # Make sure this query retrieves the 'active' field
@@ -96,6 +96,19 @@ class Quedada:
                 quedada = Quedada(*row)
                 quedadas.append(quedada)
         return quedadas
+
+    @staticmethod
+    def get_user_asist(id_user):
+        pass
+
+
+    def unirse(self,id_user):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO Asiste (user_id, quedada_id) VALUES (%s, %s)", (id_user, self.id_quedada))
+        conn.commit()
+        conn.close()
+
 
 
 
