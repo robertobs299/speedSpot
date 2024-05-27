@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 
+
 from kivy.animation import Animation
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -11,6 +12,9 @@ from email.mime.text import MIMEText
 
 from pruebas.RobertoPruebas import conexion
 import kivymd
+
+from pruebas.RobertoPruebas.Clases.User import User
+
 print(kivymd.__version__)
 
 
@@ -47,13 +51,7 @@ MDFloatLayout:
             padding: 15
             font_name: "Roboto-Bold"
             font_size: "16sp"
-        MDLabel:
-            id: error_username
-            text: "Usuario no encontrado"
-            pos_hint: {"center_x": .45, "center_y": .5}
-            halign: "center"
-            theme_text_color: "Error"
-            opacity: 0    
+         
     MDFloatLayout:
         size_hint: .85, .08
         pos_hint: {"center_x": .5, "center_y": .28}
@@ -86,12 +84,14 @@ MDFloatLayout:
             halign: "center"
             theme_text_color: "Error"
             opacity: 0    
-    MDTextButton:
-        text: '¿Has olvidado tu contraseña?'
-        theme_text_color: "Custom"
-        text_color: 96/255, 74/255, 215/255, 1
+    
+    MDLabel:
+        id: error_username
+        text: "Usuario o Contraseña Incorrectas"
         pos_hint: {"center_x": .5, "center_y": .21}
-        on_release: app.forgot_password()
+        halign: "center"
+        theme_text_color: "Error"
+        opacity: 0   
     Button:
         id: btn_login
         text: "LOGIN"
@@ -119,37 +119,37 @@ def encrypt_password(password):
 
     return password_hash
 
-def generate_temp_password():
-    return secrets.token_hex(10)
-
-def forgot_password(user_email):
-    # Generar el token de restablecimiento de contraseña
-    temp_password = generate_temp_password()
-
-    # Almacenar el token de restablecimiento de contraseña en la base de datos
-    # Aquí necesitarás escribir el código para almacenar el token en la base de datos
-
-    # Enviar el correo electrónico de restablecimiento de contraseña
-    send_temp_password_email(user_email, temp_password)
-
-
-def send_temp_password_email(user_email, temp_password):
-    # Configurar el servidor SMTP
-    smtp_server = smtplib.SMTP('smtp.gmail.com', 587)
-    smtp_server.starttls()
-    smtp_server.login('speedspot10@gmail.com', 'Ballesta123')
-
-    # Crear el mensaje
-    msg = MIMEMultipart()
-    msg['From'] = 'speedspot10@gmail.com'
-    msg['To'] = user_email
-    msg['Subject'] = 'Password Reset Request'
-    body = f'Your temporary password is: {temp_password}\nPlease change your password the next time you log in.'
-    msg.attach(MIMEText(body, 'plain'))
-
-    # Enviar el correo electrónico
-    smtp_server.send_message(msg)
-    smtp_server.quit()
+# def generate_temp_password():
+#     return secrets.token_hex(10)
+#
+# def forgot_password(user_email):
+#     # Generar el token de restablecimiento de contraseña
+#     temp_password = generate_temp_password()
+#
+#     # Almacenar el token de restablecimiento de contraseña en la base de datos
+#     # Aquí necesitarás escribir el código para almacenar el token en la base de datos
+#
+#     # Enviar el correo electrónico de restablecimiento de contraseña
+#     send_temp_password_email(user_email, temp_password)
+#
+#
+# def send_temp_password_email(user_email, temp_password):
+#     # Configurar el servidor SMTP
+#     smtp_server = smtplib.SMTP('smtp.gmail.com', 587)
+#     smtp_server.starttls()
+#     smtp_server.login('speedspot10@gmail.com', 'Ballesta123')
+#
+#     # Crear el mensaje
+#     msg = MIMEMultipart()
+#     msg['From'] = 'speedspot10@gmail.com'
+#     msg['To'] = user_email
+#     msg['Subject'] = 'Password Reset Request'
+#     body = f'Your temporary password is: {temp_password}\nPlease change your password the next time you log in.'
+#     msg.attach(MIMEText(body, 'plain'))
+#
+#     # Enviar el correo electrónico
+#     smtp_server.send_message(msg)
+#     smtp_server.quit()
 class Login(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
@@ -161,41 +161,50 @@ class Login(MDApp):
         self.root.ids.error_username.opacity = 0
         if self.root.ids.username.text == "" or self.root.ids.password.text == "":
             anim = Animation(x=self.root.ids.btn_login.x + 10, duration=0.1) + Animation(x=self.root.ids.btn_login.x - 10,
-                                                                                      duration=0.1)
+                duration=0.1)
             anim.repeat = 3
             anim.start(self.root.ids.btn_login)
             return
         else:
             username = self.root.ids.username.text
             password = self.root.ids.password.text
-            conn = conexion.connect_to_database()
-            cursor = conn.cursor()
-            cursor.execute("SELECT username, password FROM Login WHERE username = %s", (username,))
 
-            result = cursor.fetchone()
-            conn.close()
-            password = encrypt_password(password)
-            if result:
-                username, password_hash = result
-                if password_hash == password:
-                    print("Inicio de sesión correcto")
-                else:
-                    self.root.ids.error_password.opacity = 100
+            # Comprobar si el usuario y la contraseña son correctos Usando la clase User
+            user = User(None, None, None, None, None, None)
+            user = user.validate_user(username, encrypt_password(password))
+            if user:
+                print("Inicio de sesión correcto")
             else:
                 self.root.ids.error_username.opacity = 100
 
-    def forgot_password(self):
-        # Obtener el correo electrónico del usuario
-        conn = conexion.connect_to_database()
-        cursor = conn.cursor()
-        cursor.execute("SELECT email FROM User JOIN Login on User.id_user = Login.id_user = Login.id_user WHERE Login.username = %s", (self.root.ids.username.text,))
-        if (result := cursor.fetchone()):
-            user_email = result[0]
-        else:
-            print("Usuario no encontrado")
-            return
+            # conn = conexion.connect_to_database()
+            # cursor = conn.cursor()
+            # cursor.execute("SELECT username, password FROM Login WHERE username = %s", (username,))
+            #
+            # result = cursor.fetchone()
+            # conn.close()
+            # password = encrypt_password(password)
+            # if result:
+            #     username, password_hash = result
+            #     if password_hash == password:
+            #         print("Inicio de sesión correcto")
+            #     else:
+            #         self.root.ids.error_password.opacity = 100
+            # else:
+            #     self.root.ids.error_username.opacity = 100
 
-        # Enviar el correo electrónico de restablecimiento de contraseña
-        forgot_password(user_email)
+    # def forgot_password(self):
+    #     # Obtener el correo electrónico del usuario
+    #     conn = conexion.connect_to_database()
+    #     cursor = conn.cursor()
+    #     cursor.execute("SELECT email FROM User JOIN Login on User.id_user = Login.id_user = Login.id_user WHERE Login.username = %s", (self.root.ids.username.text,))
+    #     if (result := cursor.fetchone()):
+    #         user_email = result[0]
+    #     else:
+    #         print("Usuario no encontrado")
+    #         return
+    #
+    #     # Enviar el correo electrónico de restablecimiento de contraseña
+    #     forgot_password(user_email)
 if __name__ == '__main__':
     Login().run()

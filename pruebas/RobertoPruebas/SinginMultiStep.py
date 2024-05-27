@@ -182,7 +182,7 @@ def is_valid_cp(cp):
     conn = conexion.connect_to_database()
     cursor = conn.cursor()
     cursor.execute("SELECT cp FROM Postal_code WHERE cp like %s", (cp,))
-    result = cursor.fetchone()
+    result = cursor.fetchall()  # Utiliza fetchall() en lugar de fetchone()
     conn.close()
     if not result:
         return False
@@ -214,10 +214,10 @@ def registrar(email, password, username,name, surname, postalcode, phone,):
 
     # Buscar el ID del código postal
     cursor.execute("SELECT id_cp FROM Postal_code WHERE cp LIKE %s", (str(postalcode),))
-    result = cursor.fetchone()  # Obtener el resultado de la consulta
+    result = cursor.fetchall()  # Utiliza fetchall() en lugar de fetchone()
 
     if result:
-        idCp = result[0]  # Obtener el ID del código postal
+        idCp = result[0][0]  # Obtener el ID del código postal
     else:
         # Si no se encuentra el código postal, puedes manejar el error aquí
         print("El código postal no existe en la base de datos")

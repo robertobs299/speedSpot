@@ -59,7 +59,7 @@ BoxLayout:
                                 size_hint_y: .2
                                 multiline: True
                             MDTextField:
-                                id: n-participantes
+                                id: max_personas
                                 hint_text: "Maximos Participantes"
                                 pos_hint: {"center_x": .5, "center_y": .3}
                                 size_hint_x: .8
@@ -127,7 +127,7 @@ BoxLayout:
                                 on_release: app.next2()
 
                         MDFloatLayout:
-                            MDRelativeLayout:
+                            FloatLayout:
                                 ClickableMapView:
                                     id: map_view
                                     lat:50.6
@@ -144,6 +144,7 @@ BoxLayout:
                                 text: "Registrar"
                                 pos_hint: {"center_x": .7, "center_y": .1}
                                 size_hint_x: .39
+                                on_release: app.crear_quedada()
 
                 MDLabel:
                     text: "Crear Quedada"

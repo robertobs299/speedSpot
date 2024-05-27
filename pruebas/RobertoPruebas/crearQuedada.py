@@ -9,6 +9,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 
 from pruebas.RobertoPruebas import conexion
+from pruebas.RobertoPruebas.Clases.Quedada import Quedada
 
 
 def change_marker(map_view, lat, lon, text):
@@ -91,7 +92,7 @@ MDFloatLayout:
                     size_hint_y: .2
                     multiline: True
                 MDTextField:
-                    id: n-participantes
+                    id: max_personas
                     hint_text: "Maximos Participantes"
                     pos_hint: {"center_x": .5, "center_y": .3}
                     size_hint_x: .8
@@ -176,6 +177,7 @@ MDFloatLayout:
                     text: "Registrar"
                     pos_hint: {"center_x": .7, "center_y": .1}
                     size_hint_x: .39
+                    on_release: app.crear_quedada()
     
     MDLabel:
         text: "Crear Quedada"
@@ -219,16 +221,32 @@ def insertarCoordenadas(latitud, longitud):
     conn = conexion.connect_to_database()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO Coordenadas (latitud, longitud) VALUES (%s, %s)", (latitud, longitud))
-def crear_quedada(nombre, descripcion, fecha, hora, max_personas,idCoordenadas):
-
-    #AL iniciar sesion habria que guardar los datos del usuario en alguna variable para poder hacer consultas posteriormente
-    id_user = 1
+    conn.commit()
+    conn.close()
+    return cursor.lastrowid
+def insertar_direccion(tipo_via,direccion, cp, numero):
     conn = conexion.connect_to_database()
     cursor = conn.cursor()
+    cursor.execute("INSERT INTO Direccion (tipo_via, direccion, cp, numero_via) VALUES (%s, %s, %s, %s)", (tipo_via, direccion, cp, numero))
+    conn.commit()
+    conn.close()
+    return cursor.lastrowid
 
-    cursor.execute("INSERT INTO Quedada (user_organiza, descripcion, fecha, hora, max_personas,coordenadas) VALUES (%s,%s, %s, %s, %s, %s, %s)", (id_user,nombre, descripcion, fecha, hora, max_personas,idCoordenadas))
+def actualizar_coordenadas_direccion(id_direccion, id_coordenadas):
+    conn = conexion.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Direccion SET coordenadas = %s WHERE id_direccion = %s", (id_coordenadas, id_direccion))
+    conn.commit()
+    conn.close()
 
 
+def obtener_id_cp(cp):
+    conn = conexion.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id_cp FROM Postal_code WHERE cp = %s", (cp,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0]
 class MainApp(MDApp):
     fecha = ""
     hora = ""
@@ -260,24 +278,6 @@ class MainApp(MDApp):
     def on_date_cancel(self, instance, value):
         print("La selección de fecha ha sido cancelada")
 
-    def create_meetup(self):
-        nombre = self.root.ids.nombre.text
-        descripcion = self.root.ids.descripcion.text
-        max_personas = self.root.ids.max_personas.text
-        direccion = self.root.ids.direccion.text
-        latitud = self.root.ids.map_view.lat
-        longitud = self.root.ids.map_view.lon
-        insertarCoordenadas(latitud, longitud)
-
-        print(f"Nombre: {nombre}"
-              f"Descripcion: {descripcion}"
-              f"Fecha: {self.fecha}"
-              f"Hora: {self.hora}"
-              f"Max_personas: {max_personas}"
-              f"Direccion: {direccion}"
-              f"Latitud: {latitud}"
-              f"Longitud: {longitud}")
-
     def next1(self):
         self.root.ids.slide.load_next(mode="next")
         self.root.ids.icon1_progreso.text_color = self.theme_cls.primary_color
@@ -286,7 +286,7 @@ class MainApp(MDApp):
         self.root.ids.icon1_progreso.icon = "check-circle"
 
     def next2(self):
-        if not self.root.ids.email.text or not self.root.ids.telefono.text or not self.root.ids.cp.text:
+        if not self.root.ids.cp.text or not self.root.ids.direccion.text or not self.root.ids.numero.text:
             # Si alguno de los campos está vacío, agitar el botón y salir del método
             anim = Animation(x=self.root.ids.nombre.x + 10, duration=0.1) + Animation(x=self.root.ids.nombre.x - 10,
                                                                                       duration=0.1)
@@ -314,18 +314,19 @@ class MainApp(MDApp):
         anim.start(self.root.ids.progress2)
         self.root.ids.icon2_progreso.icon = "numeric-2-circle"
 
-    def open_menu(self, button):
-        menu_items = [{"text": f"Opción {i}"} for i in range(5)]
-        menu = MDDropdownMenu(
-            caller=button,
-            items=menu_items,
-            width_mult=4,
-            callback=self.menu_callback
-        )
-        menu.open()
+    def crear_quedada(self):
+        id_cp = obtener_id_cp(self.root.ids.cp.text)
 
-    def menu_callback(self, instance):
-        print(instance.text)
+        id_direccion = insertar_direccion(self.root.ids.tipo_via.text, self.root.ids.direccion.text, id_cp, self.root.ids.numero.text)
+
+        id_corrdenadas = insertarCoordenadas(self.root.ids.map_view.lat, self.root.ids.map_view.lon)
+
+        actualizar_coordenadas_direccion(id_direccion, id_corrdenadas)
+
+        quedada = Quedada(None, self.root.ids.nombre.text, self.root.ids.descripcion.text, 1, self.fecha, self.hora, id_direccion, self.root.ids.max_personas.text, 0, 1)
+
+        quedada.insertar_quedada()
+
 
 if __name__ == '__main__':
     MainApp().run()

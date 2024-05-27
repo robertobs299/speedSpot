@@ -6,7 +6,7 @@ from pruebas.RobertoPruebas import conexion
 
 
 class Quedada:
-    def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin,
+    def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, direccion,
                  max_personas, numero_personas, active):
         self.id_quedada = id_quedada
         self.nombre = nombre
@@ -14,8 +14,7 @@ class Quedada:
         self.user_organiza = user_organiza
         self.fecha = fecha
         self.hora = hora
-        self.coordenadas = coordenadas
-        self.direccion_fin = direccion_fin
+        self.direccion = direccion
         self.max_personas = max_personas
         self.numero_personas = numero_personas
         self.active = active
@@ -43,9 +42,6 @@ class Quedada:
             if 'max_personas' in filtros:
                 condiciones.append("max_personas = %s")
                 valores.append(filtros['max_personas'])
-            if 'coordenadas' in filtros:
-                condiciones.append("coordenadas = %s")
-                valores.append(filtros['coordenadas'])
 
         if condiciones:
             query += " WHERE " + " AND ".join(condiciones)
@@ -56,7 +52,7 @@ class Quedada:
 
         quedadas = []
 
-        for (id_quedada, nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin, max_personas,
+        for (id_quedada, nombre, descripcion, user_organiza, fecha, hora, direccion, max_personas,
              numero_personas) in cursor:
             quedada = Quedada(
                 id_quedada=id_quedada,
@@ -65,8 +61,7 @@ class Quedada:
                 user_organiza=user_organiza,
                 fecha=fecha,
                 hora=hora,
-                coordenadas=coordenadas,
-                direccion_fin=direccion_fin,
+                direccion=direccion,
                 max_personas=max_personas,
                 numero_personas=numero_personas
             )
@@ -81,9 +76,9 @@ class Quedada:
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO Quedada (nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin, max_personas, numero_personas) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (self.nombre, self.descripcion, self.user_organiza, self.fecha, self.hora, self.coordenadas,
-             self.direccion_fin, self.max_personas, self.numero_personas))
+            "INSERT INTO Quedada (nombre, descripcion, user_organiza, fecha, hora, direccion, max_personas, numero_personas) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (self.nombre, self.descripcion, self.user_organiza, self.fecha, self.hora, self.direccion,
+             self.max_personas, self.numero_personas))
         self.id_quedada = cursor.lastrowid
         conn.commit()
         conn.close()
@@ -92,23 +87,15 @@ class Quedada:
     def get_last_five():
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Quedada LIMIT 5")
+        cursor.execute("SELECT * FROM Quedada")  # Make sure this query retrieves the 'active' field
         result = cursor.fetchall()
         quedadas = []
         if result:
             for row in result:
+                print(row)
                 quedada = Quedada(*row)
                 quedadas.append(quedada)
         return quedadas
 
 
-# Ejemplo de uso con filtros
-filtros = {
-    'nombre': 'Reunión de Desarrollo',
-    'fecha': date(2024, 5, 20),
-    'numero_personas': 10
-}
 
-quedadas = Quedada.get_last_five()
-for quedada in quedadas:
-    print(quedada.nombre)
