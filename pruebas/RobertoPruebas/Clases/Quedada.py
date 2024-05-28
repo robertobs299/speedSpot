@@ -87,7 +87,7 @@ class Quedada:
     def get_last_five():
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Quedada")  # Make sure this query retrieves the 'active' field
+        cursor.execute("SELECT * FROM Quedada order by active desc")  # Make sure this query retrieves the 'active' field
         result = cursor.fetchall()
         quedadas = []
         if result:

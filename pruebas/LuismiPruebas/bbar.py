@@ -15,6 +15,8 @@ from pruebas.RobertoPruebas import conexion
 from pruebas.RobertoPruebas.Clases.Quedada import Quedada
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
+from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
+from kivymd.uix.label import MDLabel
 
 class ConfigScreen(Screen):
     pass
@@ -120,7 +122,9 @@ class ClickableMapView(MapView):
 class MainApp(MDApp):
     historial_list = []
     dark_theme = True
-
+    open_expansion_panels = []
+    open_expansion_panel = None
+    open_expansion_panel_height = None
     def open_config_screen(self):
         self.root.current = 'config'
 
@@ -167,13 +171,15 @@ class MainApp(MDApp):
             orientation='vertical',
             padding=dp(10),
             spacing=dp(2),
+            size_hint_y=None,  # Añade esta línea
+            height=dp(360),  # Añade esta línea
         )
 
         image = Image(
             source="moto.jpg",  # Reemplazar con quedada.imagen_url si se tiene la URL de la imagen
             size_hint_y=None,
             allow_stretch=True,
-            height=dp(250),
+            height=dp(150),
         )
 
         title_label = MDLabel(
@@ -211,10 +217,28 @@ class MainApp(MDApp):
         description_layout.add_widget(description_label)
         description_layout.add_widget(sign_up_button)
 
+        # Crear el panel de expansión
+        panel_content = MDBoxLayout(orientation='vertical', padding=dp(10), spacing=dp(10))
+        additional_info = [
+            f'Fecha: {quedada.fecha}',
+            f'Hora: {quedada.hora}',
+            f'Máx. personas: {quedada.max_personas}',
+            f'Dirección: {quedada.direccion}'
+        ]
+        for info in additional_info:
+            panel_content.add_widget(MDLabel(text=info, size_hint_y=None, height=dp(20)))
+
+        expansion_panel = MDExpansionPanel(
+            content=panel_content,
+            panel_cls=MDExpansionPanelOneLine(text='Mostrar más información')
+        )
+        expansion_panel.bind(on_open=self.on_panel_open)
+
         box_layout.add_widget(image)
         box_layout.add_widget(title_label)
         box_layout.add_widget(participants_label)
         box_layout.add_widget(description_layout)
+        box_layout.add_widget(expansion_panel)
 
         card.add_widget(box_layout)
         card.data = {
@@ -226,9 +250,9 @@ class MainApp(MDApp):
         }
 
         self.root.ids.card_list.add_widget(card)
-        self.root.ids.card_list.height += card.height + dp(15)  # Update height of BoxLayout
+        self.root.ids.card_list.height = card.height + dp(15)  # Update height of BoxLayout
 
-#función que se encarga de inscribir al usuario en la quedada o desapuntarlo si ya está inscrito. Esta función se llama cuando el usuario hace clic en el botón "Inscribirse" o "Desapuntarse"
+    #función que se encarga de inscribir al usuario en la quedada o desapuntarlo si ya está inscrito. Esta función se llama cuando el usuario hace clic en el botón "Inscribirse" o "Desapuntarse"
     def toggle_sign_up(self, instance):
         parent_card = instance.parent.parent.parent
         card_data = parent_card.data
@@ -260,7 +284,25 @@ class MainApp(MDApp):
             )
             dialog.open()  # Mostrar el diálogo
 
-#función que se encarga de desapuntar al usuario de la quedada y cerrar el diálogo. Esta función se llama cuando el usuario hace clic en el botón "SÍ" del diálogo
+    def on_panel_open(self, instance):
+        # Cerrar el panel de expansión abierto actualmente si no es el mismo que el que se está abriendo
+        if self.open_expansion_panel and self.open_expansion_panel != instance:
+            self.open_expansion_panel.content.height = dp(0)  # Colapsar el contenido del panel cerrado
+
+        # Establecer el panel de expansión abierto actualmente
+        self.open_expansion_panel = instance
+
+        # Expandir el contenido del panel abierto
+        instance.content.height = dp(200)  # Ajusta la altura según tus necesidades
+
+    def on_panel_close(self, instance):
+        # Reducir la altura del contenido del panel cerrado
+        instance.content.height = dp(0)  # Colapsar el contenido del panel cerrado
+
+        # Eliminar el panel de expansión de la lista de paneles abiertos
+        if instance == self.open_expansion_panel:
+            self.open_expansion_panel = None
+     #función que se encarga de desapuntar al usuario de la quedada y cerrar el diálogo. Esta función se llama cuando el usuario hace clic en el botón "SÍ" del diálogo
     def unsign_up(self, instance, dialog):
         parent_card = instance.parent.parent.parent
         card_data = parent_card.data
