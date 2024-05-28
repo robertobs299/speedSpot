@@ -26,6 +26,7 @@ BoxLayout:
             align: 'right'
 
 
+
     MDBottomNavigation:
 
         MDBottomNavigationItem:
@@ -211,6 +212,39 @@ BoxLayout:
             text: "Perfil"
             icon: 'account'
 
-            MDLabel:
-                text: "Achoooo"
-                halign: 'center'
+            ScreenManager:
+                MainScreen:
+                    name: 'main'
+                    BoxLayout:
+                        orientation: 'vertical'
+
+                    BoxLayout:
+                        size_hint_y: None
+                        height: '48dp'
+                        spacing: '8dp'
+                        padding: '8dp'
+
+                    Button:
+                        text: "Configuración"
+                        on_release: app.open_config_screen()
+
+
+                ConfigScreen:
+                    name: 'config'
+                    BoxLayout:
+                        orientation: 'vertical'
+
+                    BoxLayout:
+                        size_hint_y: None
+                        height: '48dp'
+                        spacing: '8dp'
+                        padding: '8dp'
+                    Button:
+                        text: "Atrás"
+                        on_release: app.go_back_to_main_screen()
+                    Label:
+                        text: "Configuración"
+
+                    Label:
+                        text: "Pantalla de Configuración"
+                        halign: 'center'

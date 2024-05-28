@@ -1,6 +1,7 @@
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.bubble import Bubble
+from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy_garden.mapview import MapView, MapMarkerPopup
 from kivymd.app import MDApp
 from kivymd.uix.card import MDCard
@@ -14,6 +15,13 @@ from pruebas.RobertoPruebas import conexion
 from pruebas.RobertoPruebas.Clases.Quedada import Quedada
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
+
+class ConfigScreen(Screen):
+    pass
+
+class MainScreen(Screen):
+    pass
+
 def insertarCoordenadas(latitud, longitud):
     conn = conexion.connect_to_database()
     cursor = conn.cursor()
@@ -113,6 +121,11 @@ class MainApp(MDApp):
     historial_list = []
     dark_theme = True
 
+    def open_config_screen(self):
+        self.root.current = 'config'
+
+    def go_back_to_main_screen(self):
+        self.root.current = 'main'
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Amber"

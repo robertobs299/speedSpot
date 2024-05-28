@@ -1,0 +1,43 @@
+ScreenManager:
+    MainScreen:
+        name: 'main'
+        BoxLayout:
+            orientation: 'vertical'
+
+            BoxLayout:
+                size_hint_y: None
+                height: '48dp'
+                spacing: '8dp'
+                padding: '8dp'
+                Button:
+                    text: "Menu"
+                    on_release: app.root.current = 'main'
+                Label:
+                    text: "Pantalla Principal"
+                Button:
+                    text: "Configuración"
+                    on_release: app.open_config_screen()
+
+            Label:
+                text: "Contenido de la Pantalla Principal"
+                halign: 'center'
+
+    ConfigScreen:
+        name: 'config'
+        BoxLayout:
+            orientation: 'vertical'
+
+            BoxLayout:
+                size_hint_y: None
+                height: '48dp'
+                spacing: '8dp'
+                padding: '8dp'
+                Button:
+                    text: "Atrás"
+                    on_release: app.go_back_to_main_screen()
+                Label:
+                    text: "Configuración"
+
+            Label:
+                text: "Pantalla de Configuración"
+                halign: 'center'
