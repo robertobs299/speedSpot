@@ -6,7 +6,7 @@ BoxLayout:
     MDBoxLayout:
         size_hint_y: None
         height: dp(56)
-        md_bg_color: 0.2, 0.2, 0.2, 1
+        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == "Dark" else app.theme_cls.bg_light
         padding: dp(10)
         spacing: dp(10)
 
@@ -15,7 +15,16 @@ BoxLayout:
             font_style: "H6"
             size_hint_x: None
             width: dp(200)
-            color: "#FFBF00"
+            color: "#FFBF00"  # Mantener en ámbar
+            theme_text_color: "Custom"
+            text_color: "#FFBF00"  # Color ámbar constante
+        MDSwitch:
+            id: theme_switch
+            size_hint: None, None
+            pos_hint: {"center_y": .3}
+            on_active: app.toggle_theme()
+            align: 'right'
+
 
     MDBottomNavigation:
 

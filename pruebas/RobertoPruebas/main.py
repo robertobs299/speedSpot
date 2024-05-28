@@ -106,12 +106,23 @@ class ClickableMapView(MapView):
 
 class MainApp(MDApp):
     historial_list = []
+    dark_theme = True
 
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Amber"
         return Builder.load_file('main.kv')
 
+    def toggle_theme(self):
+        if self.dark_theme:
+            self.theme_cls.theme_style = "Light"  # Cambia al tema claro
+            self.theme_cls.primary_palette = "Amber"
+
+        else:
+            self.theme_cls.theme_style = "Dark"  # Cambia al tema oscuro
+            self.theme_cls.primary_palette = "Amber"
+
+        self.dark_theme = not self.dark_theme  # Cambia el estado del tema
     def on_start(self):
         quedadas = Quedada.get_last_five()
         for quedada in quedadas:

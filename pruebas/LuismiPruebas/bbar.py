@@ -1,4 +1,8 @@
+from kivy.animation import Animation
 from kivy.lang import Builder
+from kivy.uix.bubble import Bubble
+from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy_garden.mapview import MapView, MapMarkerPopup
 from kivymd.app import MDApp
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
@@ -6,62 +10,128 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivy.uix.image import Image
 from kivy.metrics import dp
-from kivy.uix.bubble import Bubble
-from kivy_garden.mapview import MapView, MapMarkerPopup
-from kivymd.uix.pickers import MDDatePicker, MDTimePicker
-import mysql.connector
-
+from kivymd.uix.pickers import MDTimePicker, MDDatePicker
 from pruebas.RobertoPruebas import conexion
-from pruebas.RobertoPruebas.crearQuedada import change_marker
+from pruebas.RobertoPruebas.Clases.Quedada import Quedada
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
+
+class ConfigScreen(Screen):
+    pass
+
+class MainScreen(Screen):
+    pass
+
+def insertarCoordenadas(latitud, longitud):
+    conn = conexion.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Coordenadas (latitud, longitud) VALUES (%s, %s)", (latitud, longitud))
+
+def insertarCoordenadas(latitud, longitud):
+    conn = conexion.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Coordenadas (latitud, longitud) VALUES (%s, %s)", (latitud, longitud))
+    conn.commit()
+    conn.close()
+    return cursor.lastrowid
+def insertar_direccion(tipo_via,direccion, cp, numero):
+    conn = conexion.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Direccion (tipo_via, direccion, cp, numero_via) VALUES (%s, %s, %s, %s)", (tipo_via, direccion, cp, numero))
+    conn.commit()
+    conn.close()
+    return cursor.lastrowid
+
+def actualizar_coordenadas_direccion(id_direccion, id_coordenadas):
+    conn = conexion.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Direccion SET coordenadas = %s WHERE id_direccion = %s", (id_coordenadas, id_direccion))
+    conn.commit()
+    conn.close()
+
+def obtener_id_cp(cp):
+    conn = conexion.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id_cp FROM Postal_code WHERE cp = %s", (cp,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0]
+
+def change_marker(map_view, lat, lon, text):
+    # Crear un nuevo MapMarkerPopup
+    marker = MapMarkerPopup(lat=lat, lon=lon)
+
+    # Crear un Bubble para el popup del marcador
+    bubble = Bubble()
+
+    # Crear un BoxLayout para el contenido del popup
+    box_layout = MDBoxLayout(padding="4dp")
+
+    # Crear un Label para el texto del popup
+    label = MDLabel(text=text, markup=True, halign="center")
+
+    # Añadir el Label al BoxLayout
+    box_layout.add_widget(label)
+
+    # Añadir el BoxLayout al Bubble
+    bubble.add_widget(box_layout)
+
+    # Añadir el Bubble al MapMarkerPopup
+    marker.add_widget(bubble)
+
+    # Añadir el MapMarkerPopup al MapView
+    map_view.add_widget(marker)
+
+    return marker
 
 
-def connect_to_database():
-    conn = mysql.connector.connect(
-        host="speedspot-db-do-user-16519834-0.c.db.ondigitalocean.com",
-        port="25060",
-        user="doadmin",
-        password="AVNS_DCLwHjp1kyF7kj3AsHv",
-        database="Speedspot"
-    )
-    return conn
+class ClickableMapView(MapView):
+    current_marker = None
 
-class Quedada:
-    def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin, max_personas, numero_personas):
-        self.id_quedada = id_quedada
-        self.nombre = nombre
-        self.descripcion = descripcion
-        self.user_organiza = user_organiza
-        self.fecha = fecha
-        self.hora = hora
-        self.coordenadas = coordenadas
-        self.direccion_fin = direccion_fin
-        self.max_personas = max_personas
-        self.numero_personas = numero_personas
+    class ClickableMapView(MapView):
+        current_marker = None
 
-    @staticmethod
-    def get_last_five():
-        conn = connect_to_database()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id_quedada, nombre, descripcion, user_organiza, fecha, hora, coordenadas, direccion_fin, max_personas, numero_personas FROM Quedada LIMIT 5")
-        result = cursor.fetchall()
-        quedadas = []
-        if result:
-            for row in result:
-                quedada = Quedada(*row)
-                quedadas.append(quedada)
-        conn.close()
-        return quedadas
+        def on_touch_down(self, touch):
+            if self.collide_point(*touch.pos):
+                # Desactivar el desplazamiento del ScrollView
+                self.parent.scroll_enabled = False
+            # Si el toque ocurre dentro del MapView y es un doble clic
+            if self.collide_point(*touch.pos) and touch.is_double_tap:
+                # Convertir las coordenadas del toque a coordenadas de latitud y longitud
+                touch_lat, touch_lon = self.get_latlon_at(*touch.pos)
+
+                # Si ya hay un marcador, eliminarlo
+                if self.current_marker:
+                    self.remove_widget(self.current_marker)
+
+                # Agregar un marcador en las coordenadas del toque
+                self.current_marker = change_marker(self, touch_lat, touch_lon, "You clicked here")
+                return True
+            # Si el toque ocurre fuera del MapView o no es un doble clic, devolver el resultado de super().on_touch_down(touch)
+            return super().on_touch_down(touch)
+
+
+    def on_touch_up(self, touch):
+        # Reactivar el desplazamiento del ScrollView
+        self.parent.scroll_enabled = True
+        return super().on_touch_up(touch)
+
 
 class MainApp(MDApp):
     historial_list = []
     dark_theme = True
 
+    def open_config_screen(self):
+        self.root.current = 'config'
+
+    def go_back_to_main_screen(self):
+        self.root.current = 'main'
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Amber"
         return Builder.load_file('bbar.kv')
 
-
+#función que se encarga de cambiar el tema de la aplicación. Esta función se llama cuando el usuario hace clic en el botón de cambio de tema
     def toggle_theme(self):
         if self.dark_theme:
             self.theme_cls.theme_style = "Light"  # Cambia al tema claro
@@ -72,24 +142,31 @@ class MainApp(MDApp):
             self.theme_cls.primary_palette = "Amber"
 
         self.dark_theme = not self.dark_theme  # Cambia el estado del tema
+ #función que se encarga de añadir las últimas cinco quedadas a la lista de quedadas. Esta función se llama al iniciar la aplicación
     def on_start(self):
         quedadas = Quedada.get_last_five()
         for quedada in quedadas:
             self.add_card(quedada)
 
+#función que se encarga de añadir una tarjeta a la lista de quedadas. Esta función se llama al iniciar la aplicación
     def add_card(self, quedada):
         card = MDCard(
             size_hint=(None, None),
-            size=(dp(400), dp(460)),
+            size=(dp(300), dp(360)),
             pos_hint={"center_x": 0.5},
             elevation=10,
             radius=[15],
         )
+        if quedada.active == 0:
+            card.opacity = 0.5
+            sign_up_button_disabled = True
+        else:
+            sign_up_button_disabled = False
 
         box_layout = MDBoxLayout(
             orientation='vertical',
             padding=dp(10),
-            spacing=dp(10),
+            spacing=dp(2),
         )
 
         image = Image(
@@ -127,7 +204,8 @@ class MainApp(MDApp):
             text='Inscribirse',
             md_bg_color=self.theme_cls.primary_color,
             size_hint_x=0.15,
-            on_release=self.toggle_sign_up
+            on_release=self.toggle_sign_up,
+            disabled=sign_up_button_disabled  # Deshabilitar el botón si la quedada está inactiva
         )
 
         description_layout.add_widget(description_label)
@@ -150,20 +228,48 @@ class MainApp(MDApp):
         self.root.ids.card_list.add_widget(card)
         self.root.ids.card_list.height += card.height + dp(15)  # Update height of BoxLayout
 
+#función que se encarga de inscribir al usuario en la quedada o desapuntarlo si ya está inscrito. Esta función se llama cuando el usuario hace clic en el botón "Inscribirse" o "Desapuntarse"
     def toggle_sign_up(self, instance):
         parent_card = instance.parent.parent.parent
         card_data = parent_card.data
 
         if instance.text == 'Inscribirse':
+            self.historial_list.insert(0, card_data)
+            self.update_historial()
+
             instance.text = 'Desapuntarse'
             instance.md_bg_color = (1, 0, 0, 1)  # Rojo
-            self.historial_list.insert(0, card_data)
         else:
-            instance.text = 'Inscribirse'
-            instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
-            self.historial_list.remove(card_data)
+            # Crear el diálogo
+            dialog = MDDialog(
+                title="Confirmación",
+                text="¿Estás seguro de que quieres desapuntarte de la quedada?",
+                buttons=[
+                    MDFlatButton(
+                        text="NO",
+                        on_release=lambda x: dialog.dismiss()  # Cerrar el diálogo
 
+                    ),
+
+                    MDFlatButton(
+                        text="SÍ",
+                        on_release=lambda x: self.unsign_up(instance, dialog)  # Desapuntarse de la quedada
+                    ),
+                 self.update_historial()
+                ],
+            )
+            dialog.open()  # Mostrar el diálogo
+
+#función que se encarga de desapuntar al usuario de la quedada y cerrar el diálogo. Esta función se llama cuando el usuario hace clic en el botón "SÍ" del diálogo
+    def unsign_up(self, instance, dialog):
+        parent_card = instance.parent.parent.parent
+        card_data = parent_card.data
+
+        instance.text = 'Inscribirse'
+        instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
+        self.historial_list.remove(card_data)
         self.update_historial()
+        dialog.dismiss()  # Cerrar el diálogo
 
     def update_historial(self):
         historial_container = self.root.ids.historial_list
@@ -226,79 +332,8 @@ class MainApp(MDApp):
             historial_container.add_widget(card)
             historial_container.height += card.height + dp(15)  # Update height of BoxLayout
 
-
-    def change_marker(map_view, lat, lon, text):
-        # Crear un nuevo MapMarkerPopup
-        marker = MapMarkerPopup(lat=lat, lon=lon)
-
-        # Crear un Bubble para el popup del marcador
-        bubble = Bubble()
-
-        # Crear un BoxLayout para el contenido del popup
-        box_layout = MDBoxLayout(padding="4dp")
-
-        # Crear un Label para el texto del popup
-        label = MDLabel(text=text, markup=True, halign="center")
-
-        # Añadir el Label al BoxLayout
-        box_layout.add_widget(label)
-
-    # Añadir el BoxLayout al Bubble
-        bubble.add_widget(box_layout)
-
-    # Añadir el Bubble al MapMarkerPopup
-        marker.add_widget(bubble)
-
-    # Añadir el MapMarkerPopup al MapView
-        map_view.add_widget(marker)
-
-        return marker
-
-
-class ClickableMapView(MapView):
-    current_marker = None
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            # Desactivar el desplazamiento del ScrollView
-            self.parent.scroll_enabled = False
-        # Si el toque ocurre dentro del MapView y es un doble clic
-        if self.collide_point(*touch.pos) and touch.is_double_tap:
-            # Convertir las coordenadas del toque a coordenadas de latitud y longitud
-            touch_lat, touch_lon = self.get_latlon_at(*touch.pos)
-
-            # Si ya hay un marcador, eliminarlo
-            if self.current_marker:
-                self.remove_widget(self.current_marker)
-
-            # Agregar un marcador en las coordenadas del toque
-            self.current_marker = change_marker(self, touch_lat, touch_lon, "You clicked here")
-            return True
-        # Si el toque ocurre fuera del MapView o no es un doble clic, devolver el resultado de super().on_touch_down(touch)
-        return super().on_touch_down(touch)
-
-
-    def on_touch_up(self, touch):
-        # Reactivar el desplazamiento del ScrollView
-        self.parent.scroll_enabled = True
-        return super().on_touch_up(touch)
-
-
-def insertarCoordenadas(latitud, longitud):
-    conn = conexion.connect_to_database()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO Coordenadas (latitud, longitud) VALUES (%s, %s)", (latitud, longitud))
-def crear_quedada(nombre, descripcion, fecha, hora, max_personas,idCoordenadas):
-
-    #AL iniciar sesion habria que guardar los datos del usuario en alguna variable para poder hacer consultas posteriormente
-    id_user = 1
-    conn = conexion.connect_to_database()
-    cursor = conn.cursor()
-
-    cursor.execute("INSERT INTO Quedada (user_organiza, descripcion, fecha, hora, max_personas,coordenadas) VALUES (%s,%s, %s, %s, %s, %s, %s)", (id_user,nombre, descripcion, fecha, hora, max_personas,idCoordenadas))
-
-
-
+    fecha = ""
+    hora = ""
 
     def show_time_picker(self):
         time_picker = MDTimePicker()
@@ -311,6 +346,7 @@ def crear_quedada(nombre, descripcion, fecha, hora, max_personas,idCoordenadas):
 
     def on_time_cancel(self, instance, value):
         print("Time selection has been cancelled")
+
     def show_date_picker(self):
         date_picker = MDDatePicker()
         date_picker.bind(on_save=self.on_date_save, on_cancel=self.on_date_cancel)
@@ -323,21 +359,57 @@ def crear_quedada(nombre, descripcion, fecha, hora, max_personas,idCoordenadas):
     def on_date_cancel(self, instance, value):
         print("La selección de fecha ha sido cancelada")
 
-    def create_meetup(self):
-        nombre = self.root.ids.nombre.text
-        descripcion = self.root.ids.descripcion.text
-        max_personas = self.root.ids.max_personas.text
-        direccion = self.root.ids.direccion.text
-        latitud = self.root.ids.map_view.lat
-        longitud = self.root.ids.map_view.lon
-        insertarCoordenadas(latitud, longitud)
+    def next1(self):
+        self.root.ids.slide.load_next(mode="next")
+        self.root.ids.icon1_progreso.text_color = self.theme_cls.primary_color
+        anim = Animation(value=100, duration=1)
+        anim.start(self.root.ids.progress1)
+        self.root.ids.icon1_progreso.icon = "check-circle"
 
-        print(f"Nombre: {nombre}"
-              f"Descripcion: {descripcion}"
-              f"Fecha: {self.fecha}"
-              f"Hora: {self.hora}"
-              f"Max_personas: {max_personas}"
-              f"Direccion: {direccion}"
-              f"Latitud: {latitud}"
-              f"Longitud: {longitud}")
+    def next2(self):
+        if not self.root.ids.cp.text or not self.root.ids.direccion.text or not self.root.ids.numero.text:
+            # Si alguno de los campos está vacío, agitar el botón y salir del método
+            anim = Animation(x=self.root.ids.nombre.x + 10, duration=0.1) + Animation(x=self.root.ids.nombre.x - 10,
+                                                                                      duration=0.1)
+            anim.repeat = 3
+            anim.start(self.root.ids.next2)
+            return
+
+        self.root.ids.slide.load_next(mode="next")
+        self.root.ids.icon2_progreso.text_color = self.theme_cls.primary_color
+        anim = Animation(value=100, duration=1)
+        anim.start(self.root.ids.progress2)
+        self.root.ids.icon2_progreso.icon = "check-circle"
+
+    def previous1(self):
+        self.root.ids.slide.load_previous()
+        self.root.ids.icon1_progreso.text_color = 0, 0, 0, 1
+        anim = Animation(value=0, duration=1)
+        anim.start(self.root.ids.progress1)
+        self.root.ids.icon1_progreso.icon = "numeric-1-circle"
+
+    def previous2(self):
+        self.root.ids.slide.load_previous()
+        self.root.ids.icon2_progreso.text_color = 0, 0, 0, 1
+        anim = Animation(value=0, duration=1)
+        anim.start(self.root.ids.progress2)
+        self.root.ids.icon2_progreso.icon = "numeric-2-circle"
+
+    def crear_quedada(self):
+        id_cp = obtener_id_cp(self.root.ids.cp.text)
+
+        id_direccion = insertar_direccion(self.root.ids.tipo_via.text, self.root.ids.direccion.text, id_cp,
+                                          self.root.ids.numero.text)
+
+        id_corrdenadas = insertarCoordenadas(self.root.ids.map_view.lat, self.root.ids.map_view.lon)
+
+        actualizar_coordenadas_direccion(id_direccion, id_corrdenadas)
+
+        quedada = Quedada(None, self.root.ids.nombre.text, self.root.ids.descripcion.text, 1, self.fecha, self.hora,
+                          id_direccion, self.root.ids.max_personas.text, 0, 1)
+
+        quedada.insertar_quedada()
+
+
+
 MainApp().run()
