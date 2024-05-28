@@ -157,6 +157,11 @@ class MainApp(MDApp):
             elevation=10,
             radius=[15],
         )
+        if quedada.active == 0:
+            card.opacity = 0.5
+            sign_up_button_disabled = True
+        else:
+            sign_up_button_disabled = False
 
         box_layout = MDBoxLayout(
             orientation='vertical',
@@ -199,8 +204,8 @@ class MainApp(MDApp):
             text='Inscribirse',
             md_bg_color=self.theme_cls.primary_color,
             size_hint_x=0.15,
-            on_release=self.toggle_sign_up
-
+            on_release=self.toggle_sign_up,
+            disabled=sign_up_button_disabled  # Deshabilitar el botón si la quedada está inactiva
         )
 
         description_layout.add_widget(description_label)
