@@ -12,7 +12,8 @@ from kivy.metrics import dp
 from kivymd.uix.pickers import MDTimePicker, MDDatePicker
 from pruebas.RobertoPruebas import conexion
 from pruebas.RobertoPruebas.Clases.Quedada import Quedada
-
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
 def insertarCoordenadas(latitud, longitud):
     conn = conexion.connect_to_database()
     cursor = conn.cursor()
@@ -117,6 +118,7 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Amber"
         return Builder.load_file('bbar.kv')
 
+#función que se encarga de cambiar el tema de la aplicación. Esta función se llama cuando el usuario hace clic en el botón de cambio de tema
     def toggle_theme(self):
         if self.dark_theme:
             self.theme_cls.theme_style = "Light"  # Cambia al tema claro
@@ -127,15 +129,17 @@ class MainApp(MDApp):
             self.theme_cls.primary_palette = "Amber"
 
         self.dark_theme = not self.dark_theme  # Cambia el estado del tema
+ #función que se encarga de añadir las últimas cinco quedadas a la lista de quedadas. Esta función se llama al iniciar la aplicación
     def on_start(self):
         quedadas = Quedada.get_last_five()
         for quedada in quedadas:
             self.add_card(quedada)
 
+#función que se encarga de añadir una tarjeta a la lista de quedadas. Esta función se llama al iniciar la aplicación
     def add_card(self, quedada):
         card = MDCard(
             size_hint=(None, None),
-            size=(dp(400), dp(460)),
+            size=(dp(300), dp(360)),
             pos_hint={"center_x": 0.5},
             elevation=10,
             radius=[15],
@@ -144,7 +148,7 @@ class MainApp(MDApp):
         box_layout = MDBoxLayout(
             orientation='vertical',
             padding=dp(10),
-            spacing=dp(10),
+            spacing=dp(2),
         )
 
         image = Image(
@@ -205,6 +209,7 @@ class MainApp(MDApp):
         self.root.ids.card_list.add_widget(card)
         self.root.ids.card_list.height += card.height + dp(15)  # Update height of BoxLayout
 
+#función que se encarga de inscribir al usuario en la quedada o desapuntarlo si ya está inscrito. Esta función se llama cuando el usuario hace clic en el botón "Inscribirse" o "Desapuntarse"
     def toggle_sign_up(self, instance):
         parent_card = instance.parent.parent.parent
         card_data = parent_card.data
@@ -214,11 +219,33 @@ class MainApp(MDApp):
             instance.md_bg_color = (1, 0, 0, 1)  # Rojo
             self.historial_list.insert(0, card_data)
         else:
-            instance.text = 'Inscribirse'
-            instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
-            self.historial_list.remove(card_data)
+            # Crear el diálogo
+            dialog = MDDialog(
+                title="Confirmación",
+                text="¿Estás seguro de que quieres desapuntarte de la quedada?",
+                buttons=[
+                    MDFlatButton(
+                        text="NO",
+                        on_release=lambda x: dialog.dismiss()  # Cerrar el diálogo
+                    ),
+                    MDFlatButton(
+                        text="SÍ",
+                        on_release=lambda x: self.unsign_up(instance, dialog)  # Desapuntarse de la quedada
+                    ),
+                ],
+            )
+            dialog.open()  # Mostrar el diálogo
 
+#función que se encarga de desapuntar al usuario de la quedada y cerrar el diálogo. Esta función se llama cuando el usuario hace clic en el botón "SÍ" del diálogo
+    def unsign_up(self, instance, dialog):
+        parent_card = instance.parent.parent.parent
+        card_data = parent_card.data
+
+        instance.text = 'Inscribirse'
+        instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
+        self.historial_list.remove(card_data)
         self.update_historial()
+        dialog.dismiss()  # Cerrar el diálogo
 
     def update_historial(self):
         historial_container = self.root.ids.historial_list
