@@ -200,6 +200,7 @@ class MainApp(MDApp):
             md_bg_color=self.theme_cls.primary_color,
             size_hint_x=0.15,
             on_release=self.toggle_sign_up
+
         )
 
         description_layout.add_widget(description_label)
@@ -228,9 +229,11 @@ class MainApp(MDApp):
         card_data = parent_card.data
 
         if instance.text == 'Inscribirse':
+            self.historial_list.insert(0, card_data)
+            self.update_historial()
+
             instance.text = 'Desapuntarse'
             instance.md_bg_color = (1, 0, 0, 1)  # Rojo
-            self.historial_list.insert(0, card_data)
         else:
             # Crear el diálogo
             dialog = MDDialog(
@@ -240,11 +243,14 @@ class MainApp(MDApp):
                     MDFlatButton(
                         text="NO",
                         on_release=lambda x: dialog.dismiss()  # Cerrar el diálogo
+
                     ),
+
                     MDFlatButton(
                         text="SÍ",
                         on_release=lambda x: self.unsign_up(instance, dialog)  # Desapuntarse de la quedada
                     ),
+                 self.update_historial()
                 ],
             )
             dialog.open()  # Mostrar el diálogo
