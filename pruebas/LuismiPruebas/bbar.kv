@@ -1,4 +1,6 @@
-MDBoxLayout:
+#:import dp kivy.metrics.dp
+
+BoxLayout:
     orientation: 'vertical'
 
     MDBoxLayout:
@@ -16,20 +18,16 @@ MDBoxLayout:
             color: "#FFBF00"  # Mantener en ámbar
             theme_text_color: "Custom"
             text_color: "#FFBF00"  # Color ámbar constante
-
-        Widget:  # Para empujar el contenido a la izquierda
-            size_hint_x: None
-            width: dp(20)
-
         MDSwitch:
             id: theme_switch
             size_hint: None, None
-            size: dp(48), dp(48)
-            pos_hint: {'center_y': 0.4, 'center_x': 0.15}  # Ajuste de posición
+            pos_hint: {"center_y": .3}
             on_active: app.toggle_theme()
+            align: 'right'
 
 
     MDBottomNavigation:
+
         MDBottomNavigationItem:
             name: 'screen 1'
             text: "Inicio"
@@ -50,78 +48,148 @@ MDBoxLayout:
             text: "Añadir quedada"
             icon: 'plus-circle'
 
-            ScrollView:
-                id: add_meetup_scrollview
-                size_hint_y: None
-                height: self.parent.height - dp(56)  # Ajuste de la altura del ScrollView
-                do_scroll_y: True
-                BoxLayout:
-                    orientation: "vertical"
-                    padding: "10dp"
-                    spacing: "10dp"
-                    size_hint_y: None
-                    height: self.minimum_height
+            MDFloatLayout:
+                MDCard:
+                    size_hint: 1, 1
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    Carousel:
+                        id: slide
+                        MDFloatLayout:
+                            MDTextField:
+                                id: nombre
+                                hint_text: "Nombre"
+                                pos_hint: {"center_x": .5, "center_y": .6}
+                                size_hint_x: .8
+                            MDTextField:
+                                id: descripcion
+                                hint_text: "Descripcion"
+                                pos_hint: {"center_x": .5, "center_y": .45}
+                                size_hint_x: .8
+                                size_hint_y: .2
+                                multiline: True
+                            MDTextField:
+                                id: max_personas
+                                hint_text: "Maximos Participantes"
+                                pos_hint: {"center_x": .5, "center_y": .3}
+                                size_hint_x: .8
+                            MDRaisedButton:
+                                id: fecha
+                                text: "Fecha"
+                                pos_hint: {"center_x": .3, "center_y": .2}
+                                size_hint_x: .39
+                                on_release: app.show_date_picker()
+                            MDRaisedButton:
+                                id: hora
+                                text: "Hora"
+                                pos_hint: {"center_x": .7, "center_y": .2}
+                                size_hint_x: .39
+                                on_release: app.show_time_picker()
+                            MDRaisedButton:
+                                id: next1
+                                text: "Siguiente"
+                                pos_hint: {"center_x": .5, "center_y": .1}
+                                size_hint_x: .8
+                                on_release: app.next1()
 
-                    MDTextField:
-                        id: nombre
-                        hint_text: "Nombre de la quedada"
-                        mode: "rectangle"
-                        size_hint_y: None
-                        height: "48dp"
+                        MDFloatLayout:
+                            Spinner:
+                                id: tipo_via
+                                text: "Tipo de vía"
+                                values: ["Calle", "Avenida", "Plaza", "Paseo", "Camino"]
+                                pos_hint: {"center_x": .5, "center_y": .6}
+                                size_hint_x: .8
+                                size_hint_y: .1
+                                text_align: "left"
 
-                    MDTextField:
-                        id: descripcion
-                        hint_text: "Descripción"
-                        mode: "rectangle"
-                        multiline: True
-                        size_hint_y: None
-                        height: "96dp"
+                            MDTextField:
+                                id: direccion
+                                hint_text: "Direccion"
+                                pos_hint: {"center_x": .5, "center_y": .5}
+                                size_hint_x: .8
+                            MDTextField:
+                                id: cp
+                                hint_text: "Codigo Postal"
+                                pos_hint: {"center_x": .5, "center_y": .4}
+                                size_hint_x: .8
+                            MDTextField:
+                                id: numero
+                                hint_text: "numero"
+                                pos_hint: {"center_x": .5, "center_y": .3}
+                                size_hint_x: .8
+                            MDLabel:
+                                id: error_cp
+                                text: "El código postal no es válido"
+                                pos_hint: {"center_x": .5, "center_y": .25}
+                                halign: "center"
+                                theme_text_color: "Error"
+                                opacity: 0
+                            MDRaisedButton:
+                                text: "Anterior"
+                                pos_hint: {"center_x": .3, "center_y": .2}
+                                size_hint_x: .39
+                                on_release: app.previous1()
+                            MDRaisedButton:
+                                id: next2
+                                text: "Siguiente"
+                                pos_hint: {"center_x": .7, "center_y": .2}
+                                size_hint_x: .39
+                                on_release: app.next2()
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        spacing: "10dp"
+                        MDFloatLayout:
+                            FloatLayout:
+                                ClickableMapView:
+                                    id: map_view
+                                    lat:50.6
+                                    lon:3.05
+                                    zoom:13
+                                    size_hint: .9, .5  # Ajusta el tamaño del mapa
+                                    pos_hint: {"center_x": .5, "center_y": .4}
+                            MDRaisedButton:
+                                text: "Anterior"
+                                pos_hint: {"center_x": .3, "center_y": .1}
+                                size_hint_x: .39
+                                on_press: app.previous2()
+                            MDRaisedButton:
+                                text: "Registrar"
+                                pos_hint: {"center_x": .7, "center_y": .1}
+                                size_hint_x: .39
+                                on_release: app.crear_quedada()
 
-                        MDRaisedButton:
-                            id: fecha
-                            text: "Fecha"
-                            on_release: app.show_date_picker()
+                MDLabel:
+                    text: "Crear Quedada"
+                    bold: True
+                    pos_hint: {"center_x": .8, "center_y": .9}
+                    font_style: "H4"
+                MDIconButton:
+                    id: icon1_progreso
+                    icon: "information"
+                    pos_hint: {"center_x": .14, "center_y": .75}
+                    user_font_size: "50sp"
+                    theme_text_color: "Custom"
+                MDProgressBar:
+                    id: progress1
+                    size_hint_x: .3
+                    size_hint_y: .015
+                    pos_hint: {"center_x": .315, "center_y": .75}
 
-                        MDRaisedButton:
-                            id: hora
-                            text: "Hora"
-                            on_release: app.show_time_picker()
+                MDIconButton:
+                    id: icon2_progreso
+                    icon: "map-marker"
+                    pos_hint: {"center_x": .5, "center_y": .75}
+                    user_font_size: "50sp"
+                    theme_text_color: "Custom"
+                MDProgressBar:
+                    id: progress2
+                    size_hint_x: .3
+                    size_hint_y: .015
+                    pos_hint: {"center_x": .68, "center_y": .75}
 
-                    MDTextField:
-                        id: max_personas
-                        hint_text: "Cantidad de personas"
-                        mode: "rectangle"
-                        input_type: "number"
-                        size_hint_y: None
-                        height: "48dp"
-
-                    MDTextField:
-                        id: direccion
-                        hint_text: "Dirección"
-                        mode: "rectangle"
-                        multiline: True
-                        size_hint_y: None
-                        height: "96dp"
-
-                    MDRelativeLayout:
-                        size_hint_y: None
-                        height: "300dp"
-                        ClickableMapView:
-                            id: map_view
-                            lat:50.6
-                            lon:3.05
-                            zoom:13
-
-                    MDRaisedButton:
-                        text: "Crear Quedada"
-                        pos_hint: {"center_x": 0.5}
-                        size_hint_y: None
-                        height: "48dp"
-                        on_release: app.create_meetup()
+                MDIconButton:
+                    id: icon3_progreso
+                    icon: "map"
+                    pos_hint: {"center_x": .86, "center_y": .75}
+                    user_font_size: "50sp"
+                    theme_text_color: "Custom"
 
         MDBottomNavigationItem:
             name: 'screen 3'
