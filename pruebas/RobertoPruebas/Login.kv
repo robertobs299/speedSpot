@@ -1,0 +1,90 @@
+MDScreen:
+    name: "login"
+    MDFloatLayout:
+        MDLabel:
+            text: 'Iniciar Sesión'
+            halign: 'center'
+            pos_hint: {'center_x':0.5, 'center_y':0.7}
+            font_name: 'Roboto-Bold'
+            font_size: "40sp"
+        MDFloatLayout:
+            size_hint: .85, .08
+            pos_hint: {"center_x": .5, "center_y": .38}
+            canvas:
+                Color:
+                    rgb: (238/255, 238/255, 238/255, 1)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [25]
+            TextInput:
+                id: username
+                hint_text: "Nombre de Usuario"
+                size_hint: 1, None
+                pos_hint: {"center_x": .5, "center_y": .5}
+                height: self.minimum_height
+                multiline: False
+                cursor_color: 96/255, 74/255, 215/255, 1
+                cursor_width: "2sp"
+                foreground_color: 96/255, 74/255, 215/255, 1
+                background_color: 0, 0, 0, 0
+                padding: 15
+                font_name: "Roboto-Bold"
+                font_size: "16sp"
+
+        MDFloatLayout:
+            size_hint: .85, .08
+            pos_hint: {"center_x": .5, "center_y": .28}
+            canvas:
+                Color:
+                    rgb: (238/255, 238/255, 238/255, 1)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [25]
+            TextInput:
+                id: password
+                hint_text: "Contraseña"
+                password: True
+                size_hint: 1, None
+                pos_hint: {"center_x": .5, "center_y": .5}
+                height: self.minimum_height
+                multiline: False
+                cursor_color: 96/255, 74/255, 215/255, 1
+                cursor_width: "2sp"
+                foreground_color: 96/255, 74/255, 215/255, 1
+                background_color: 0, 0, 0, 0
+                padding: 15
+                font_name: "Roboto-Bold"
+                font_size: "16sp"
+            MDLabel:
+                id: error_password
+                text: "Contraseña incorrecta"
+                pos_hint: {"center_x": .45, "center_y": .5}
+                halign: "center"
+                theme_text_color: "Error"
+                opacity: 0
+
+        MDLabel:
+            id: error_username
+            text: "Usuario o Contraseña Incorrectas"
+            pos_hint: {"center_x": .5, "center_y": .21}
+            halign: "center"
+            theme_text_color: "Error"
+            opacity: 0
+        Button:
+            id: btn_login
+            text: "LOGIN"
+            font_name: "Roboto-Bold"
+            font_size: "20sp"
+            size_hint: .5, .08
+            pos_hint: {"center_x": .5, "center_y": .12}
+            background_color: 0, 0, 0, 0
+            canvas.before:
+                Color:
+                    rgb: app.theme_cls.primary_color
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [23]
+            on_release: app.login()

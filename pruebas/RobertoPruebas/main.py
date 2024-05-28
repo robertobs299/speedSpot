@@ -1,6 +1,8 @@
 from kivy.animation import Animation
+from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.bubble import Bubble
+from kivy.uix.screenmanager import Screen
 from kivy_garden.mapview import MapView, MapMarkerPopup
 from kivymd.app import MDApp
 from kivymd.uix.card import MDCard
@@ -104,14 +106,15 @@ class ClickableMapView(MapView):
         return super().on_touch_up(touch)
 
 
-class MainApp(MDApp):
+class MainApp(Screen):
     historial_list = []
     dark_theme = True
 
     def build(self):
-        self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "Amber"
-        return Builder.load_file('main.kv')
+        App.get_running_app().theme_cls.theme_style = "Dark"
+        App.get_running_app().theme_cls.primary_palette = "Amber"
+        Builder.load_file('main.kv')
+        return self
 
     def toggle_theme(self):
         if self.dark_theme:
@@ -357,4 +360,4 @@ class MainApp(MDApp):
 
 
 
-MainApp().run()
+# MainApp().run()
