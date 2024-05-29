@@ -1,0 +1,159 @@
+MDScreen:
+    name: "singin"
+    MDFloatLayout:
+        MDCard:
+            size_hint: 1, 1
+            pos_hint: {"center_x": .5, "center_y": .5}
+            Carousel:
+                id: slide
+                MDFloatLayout:
+                    MDTextField:
+                        id: nombre
+                        hint_text: "Nombre"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        size_hint_x: .8
+                    MDTextField:
+                        id: apellidos
+                        hint_text: "Apellidos"
+                        pos_hint: {"center_x": .5, "center_y": .4}
+                        size_hint_x: .8
+                    MDTextField:
+                        id: username
+                        hint_text: "Nombre de Usuario"
+                        pos_hint: {"center_x": .5, "center_y": .3}
+                        size_hint_x: .8
+                    MDLabel:
+                        id: error_username
+                        text: "El nombre de usuario ya existe"
+                        pos_hint: {"center_x": .5, "center_y": .25}
+                        halign: "center"
+                        theme_text_color: "Error"
+                        opacity: 0
+                    MDRaisedButton:
+                        id: next1
+                        text: "Siguiente"
+                        pos_hint: {"center_x": .5, "center_y": .2}
+                        size_hint_x: .8
+                        on_release: app.next1_singin()
+
+                MDFloatLayout:
+                    MDTextField:
+                        id: email
+                        hint_text: "Email"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        size_hint_x: .8
+                    MDLabel:
+                        id: error_email
+                        text: "El correo electrónico no es válido"
+                        pos_hint: {"center_x": .5, "center_y": .45}
+                        halign: "center"
+                        theme_text_color: "Error"
+                        opacity: 0
+                    MDTextField:
+                        id: telefono
+                        hint_text: "Numero de Telefono"
+                        pos_hint: {"center_x": .5, "center_y": .4}
+                        size_hint_x: .8
+                    MDLabel:
+                        id: error_telefono
+                        text: "El número de teléfono no es válido"
+                        pos_hint: {"center_x": .5, "center_y": .35}
+                        halign: "center"
+                        theme_text_color: "Error"
+                        opacity: 0
+                    MDTextField:
+                        id: cp
+                        hint_text: "Codigo Postal"
+                        pos_hint: {"center_x": .5, "center_y": .3}
+                        size_hint_x: .8
+                    MDLabel:
+                        id: error_cp
+                        text: "El código postal no es válido"
+                        pos_hint: {"center_x": .5, "center_y": .25}
+                        halign: "center"
+                        theme_text_color: "Error"
+                        opacity: 0
+                    MDRaisedButton:
+                        text: "Anterior"
+                        pos_hint: {"center_x": .3, "center_y": .2}
+                        size_hint_x: .39
+                        on_release: app.previous1_singin()
+                    MDRaisedButton:
+                        id: next2
+                        text: "Siguiente"
+                        pos_hint: {"center_x": .7, "center_y": .2}
+                        size_hint_x: .39
+                        on_release: app.next2_singin()
+
+                MDFloatLayout:
+                    MDTextField:
+                        id: password
+                        hint_text: "Contraseña"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        size_hint_x: .8
+                        password: True
+                    MDLabel:
+                        id: error_password
+                        text: "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una minúscula, un número y un carácter especial"
+                        pos_hint: {"center_x": .5, "center_y": .45}
+                        halign: "center"
+                        theme_text_color: "Error"
+                        opacity: 0
+                    MDTextField:
+                        id: confirm_password
+                        hint_text: "Confirmar Contraseña"
+                        pos_hint: {"center_x": .5, "center_y": .4}
+                        size_hint_x: .8
+                        password: True
+                    MDLabel:
+                        id: error_confirm_password
+                        text: "Las contraseñas no coinciden"
+                        pos_hint: {"center_x": .5, "center_y": .35}
+                        halign: "center"
+                        theme_text_color: "Error"
+                        opacity: 0
+                    MDRaisedButton:
+                        text: "Anterior"
+                        pos_hint: {"center_x": .3, "center_y": .2}
+                        size_hint_x: .39
+                        on_press: app.previous2_singin()
+                    MDRaisedButton:
+                        text: "Registrar"
+                        pos_hint: {"center_x": .7, "center_y": .2}
+                        size_hint_x: .39
+                        on_release: app.comprobarContraseñas()
+        MDLabel:
+            text: "Registro de Usuario"
+            bold: True
+            pos_hint: {"center_x": .8, "center_y": .8}
+            font_style: "H4"
+        MDIconButton:
+            id: icon1_progreso
+            icon: "numeric-1-circle"
+            pos_hint: {"center_x": .14, "center_y": .65}
+            user_font_size: "50sp"
+            theme_text_color: "Custom"
+        MDProgressBar:
+            id: progress1
+            size_hint_x: .3
+            size_hint_y: .015
+            pos_hint: {"center_x": .315, "center_y": .65}
+
+        MDIconButton:
+            id: icon2_progreso
+            icon: "numeric-2-circle"
+            pos_hint: {"center_x": .5, "center_y": .65}
+            user_font_size: "50sp"
+            theme_text_color: "Custom"
+        MDProgressBar:
+            id: progress2
+            size_hint_x: .3
+            size_hint_y: .015
+            pos_hint: {"center_x": .68, "center_y": .65}
+
+        MDIconButton:
+            id: icon3_progreso
+            icon: "numeric-3-circle"
+            pos_hint: {"center_x": .86, "center_y": .65}
+            user_font_size: "50sp"
+            theme_text_color: "Custom"
