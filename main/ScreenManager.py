@@ -1,5 +1,4 @@
 import re
-
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.bubble import Bubble
 from kivy_garden.mapview import MapView, MapMarkerPopup

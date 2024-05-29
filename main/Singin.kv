@@ -32,9 +32,20 @@ MDScreen:
                     MDRaisedButton:
                         id: next1
                         text: "Siguiente"
-                        pos_hint: {"center_x": .5, "center_y": .2}
+                        pos_hint: {"center_x": .5, "center_y": .1}
                         size_hint_x: .8
                         on_release: app.next1_singin()
+                    MDLabel:
+                        id: btn_register
+                        text: "¿Ya tienes cuenta? Inicia Sesion"
+                        align: "center"
+                        font_name: "Roboto-Bold"
+                        font_size: "15sp"
+                        size_hint: .5, .08
+                        pos_hint: {"center_x": .5, "center_y": .2}
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                        on_touch_down: if self.collide_point(*args[1].pos): app.change_screen("login")
 
                 MDFloatLayout:
                     MDTextField:
@@ -105,6 +116,7 @@ MDScreen:
                         pos_hint: {"center_x": .5, "center_y": .4}
                         size_hint_x: .8
                         password: True
+
                     MDLabel:
                         id: error_confirm_password
                         text: "Las contraseñas no coinciden"
