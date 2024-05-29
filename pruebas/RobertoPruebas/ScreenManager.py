@@ -7,14 +7,14 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivy.metrics import dp
 from kivymd.uix.pickers import MDTimePicker, MDDatePicker
-from pruebas.RobertoPruebas.Clases.Quedada import Quedada
+from main.Clases.Quedada import Quedada
 import hashlib
 from kivy.animation import Animation
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.image import Image
 from pruebas.RobertoPruebas import conexion
-from pruebas.RobertoPruebas.Clases.User import User
+from main.Clases.User import User
 
 
 

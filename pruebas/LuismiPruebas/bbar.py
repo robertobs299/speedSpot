@@ -1,18 +1,17 @@
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.bubble import Bubble
-from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.uix.screenmanager import Screen
 from kivy_garden.mapview import MapView, MapMarkerPopup
 from kivymd.app import MDApp
 from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivymd.uix.pickers import MDTimePicker, MDDatePicker
 from pruebas.RobertoPruebas import conexion
-from pruebas.RobertoPruebas.Clases.Quedada import Quedada
+from main.Clases.Quedada import Quedada
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine

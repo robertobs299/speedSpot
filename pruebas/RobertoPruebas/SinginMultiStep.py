@@ -301,13 +301,15 @@ class LoginMultiStep(MDApp):
         self.root.ids.icon2_progreso.icon = "check-circle"
     def previous1(self):
         self.root.ids.slide.load_previous()
-        self.root.ids.icon1_progreso.text_color = 0,0,0,1
+        self.root.ids.icon1_progreso.text_color = 1,1,1,1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.ids.progress1)
+        # poner el icon1_progreso en blanco
+
         self.root.ids.icon1_progreso.icon = "numeric-1-circle"
     def previous2(self):
         self.root.ids.slide.load_previous()
-        self.root.ids.icon2_progreso.text_color = 0,0,0,1
+        self.root.ids.icon2_progreso.text_color = 1,1,1,1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.ids.progress2)
         self.root.ids.icon2_progreso.icon = "numeric-2-circle"

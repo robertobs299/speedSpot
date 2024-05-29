@@ -1,17 +1,9 @@
 import hashlib
-import secrets
 from kivy.animation import Animation
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
-from kivymd.app import MDApp
 from kivy.lang import Builder
-from kivy.uix.image import Image
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from pruebas.RobertoPruebas import conexion
-import kivymd
-from pruebas.RobertoPruebas.Clases.User import User
+from main.Clases.User import User
 
 
 def encrypt_password(password):

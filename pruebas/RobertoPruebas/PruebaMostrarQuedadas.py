@@ -3,7 +3,7 @@ from kivymd.app import MDApp
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 
-from pruebas.RobertoPruebas.Clases.Quedada import Quedada
+from main.Clases.Quedada import Quedada
 
 Builder.load_file('my.kv')
 

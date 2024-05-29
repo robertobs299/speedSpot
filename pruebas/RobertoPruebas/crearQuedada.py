@@ -5,11 +5,10 @@ from kivy_garden.mapview import MapView, MapMarkerPopup
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 
 from pruebas.RobertoPruebas import conexion
-from pruebas.RobertoPruebas.Clases.Quedada import Quedada
+from main.Clases.Quedada import Quedada
 
 
 def change_marker(map_view, lat, lon, text):
