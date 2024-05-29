@@ -260,11 +260,10 @@ class MyApp(MDApp):
         )
 
         participants_label = MDLabel(
-            text=f'Nº de participantes: {quedada.numero_personas}',
+            text=f'Participantes: {quedada.numero_personas}',
             size_hint_y=None,
             height=dp(30),
         )
-
         description_layout = MDBoxLayout(
             orientation='horizontal',
             size_hint_y=None,
@@ -281,6 +280,7 @@ class MyApp(MDApp):
             md_bg_color=self.theme_cls.primary_color,
             size_hint_x=0.15,
             on_release=self.toggle_sign_up
+
         )
 
         description_layout.add_widget(description_label)
@@ -310,10 +310,12 @@ class MyApp(MDApp):
         if instance.text == 'Inscribirse':
             instance.text = 'Desapuntarse'
             instance.md_bg_color = (1, 0, 0, 1)  # Rojo
+            Quedada.unirse(self.user.id, card_data['id'])
             self.historial_list.insert(0, card_data)
         else:
             instance.text = 'Inscribirse'
             instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
+            Quedada.desapuntarse(self.user.id, card_data['id'])
             self.historial_list.remove(card_data)
 
         self.update_historial()

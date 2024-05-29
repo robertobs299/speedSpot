@@ -87,7 +87,7 @@ class Quedada:
     def get_last_five(): # es mentira te las devuelve todas jijiji era bait
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Quedada order by active desc")  # Make sure this query retrieves the 'active' field
+        cursor.execute("SELECT * FROM Quedada where active = 1 order by fecha desc")  # Make sure this query retrieves the 'active' field
         result = cursor.fetchall()
         quedadas = []
         if result:
@@ -98,14 +98,32 @@ class Quedada:
         return quedadas
 
     @staticmethod
-    def get_user_asist(id_user):
-        pass
-
-
-    def unirse(self,id_user):
+    def get_quedadas_user_asist(id_user):
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO Asiste (user_id, quedada_id) VALUES (%s, %s)", (id_user, self.id_quedada))
+        cursor.execute("SELECT q.* FROM Asiste a join Quedada q on a.quedada_id = q.id_quedada where a.user_id = %s", (id_user,))
+        result = cursor.fetchall()
+        quedadas = []
+        if result:
+            for row in result:
+                quedada = Quedada(*row)
+                quedadas.append(quedada)
+        return quedadas
+
+    @staticmethod
+    def unirse(id_user,id_quedada):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO Asiste (user_id, quedada_id) VALUES (%s, %s)", (id_user,id_quedada))
+        cursor.execute("UPDATE Quedada SET numero_personas = numero_personas + 1 WHERE id_quedada = %s", (id_quedada,))
+        conn.commit()
+        conn.close()
+    @staticmethod
+    def desapuntarse(id_user,id_quedada):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM Asiste WHERE user_id = %s AND quedada_id = %s", (id_user, id_quedada))
+        cursor.execute("UPDATE Quedada SET numero_personas = numero_personas - 1 WHERE id_quedada = %s", (id_quedada,))
         conn.commit()
         conn.close()
 
