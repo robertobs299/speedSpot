@@ -408,6 +408,13 @@ class MyApp(MDApp):
     def on_date_cancel(self, instance, value):
         print("La selección de fecha ha sido cancelada")
 
+
+    def check_theme(self):
+        if self.dark_theme:
+            return 0
+        else:
+            return 1
+
     def next1(self):
         self.root.get_screen('main').ids.slide.load_next(mode="next")
         self.root.get_screen('main').ids.icon1_progreso.text_color = self.theme_cls.primary_color
@@ -432,14 +439,16 @@ class MyApp(MDApp):
 
     def previous1(self):
         self.root.get_screen('main').ids.slide.load_previous()
-        self.root.get_screen('main').ids.icon1_progreso.text_color = 1,1,1,1
+        color = self.check_theme()
+        self.root.get_screen('main').ids.icon1_progreso.text_color = color,color,color,1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.get_screen('main').ids.progress1)
         self.root.get_screen('main').ids.icon1_progreso.icon = "numeric-1-circle"
 
     def previous2(self):
         self.root.get_screen('main').ids.slide.load_previous()
-        self.root.get_screen('main').ids.icon2_progreso.text_color = 1,1,1, 1
+        color = self.check_theme()
+        self.root.get_screen('main').ids.icon2_progreso.text_color = color,color,color,1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.get_screen('main').ids.progress2)
         self.root.get_screen('main').ids.icon2_progreso.icon = "numeric-2-circle"
@@ -538,7 +547,8 @@ class MyApp(MDApp):
 
     def previous1_singin(self):
         self.root.get_screen('singin').ids.slide.load_previous()
-        self.root.get_screen('singin').ids.icon1_progreso.text_color = 1,1,1,1
+        color = self.check_theme()
+        self.root.get_screen('singin').ids.icon1_progreso.text_color = color,color,color,1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.get_screen('singin').ids.progress1)
         # poner el icon1_progreso en blanco
@@ -546,7 +556,8 @@ class MyApp(MDApp):
 
     def previous2_singin(self):
         self.root.get_screen('singin').ids.slide.load_previous()
-        self.root.get_screen('singin').ids.icon2_progreso.text_color = 1,1,1,1
+        color = self.check_theme()
+        self.root.get_screen('singin').ids.icon2_progreso.text_color = color,color,color,1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.get_screen('singin').ids.progress2)
         self.root.get_screen('singin').ids.icon2_progreso.icon = "numeric-2-circle"
