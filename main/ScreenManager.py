@@ -384,6 +384,21 @@ class MyApp(MDApp):
     fecha = ""
     hora = ""
 
+    def reset_and_go_to_first_screen(self):
+        # Restablecer todos los campos de entrada
+        self.root.get_screen('main').ids.nombre.text = ""
+        self.root.get_screen('main').ids.descripcion.text = ""
+        self.root.get_screen('main').ids.tipo_via.text = ""
+        self.root.get_screen('main').ids.direccion.text = ""
+        self.root.get_screen('main').ids.numero.text = ""
+        self.root.get_screen('main').ids.cp.text = ""
+        self.root.get_screen('main').ids.max_personas.text = ""
+        # Cambiar a la primera pantalla del registro de quedadas
+        self.root.get_screen('main').ids.slide.load_slide(self.root.get_screen('main').ids.slide.slides[0])
+        self.previous2()
+        self.previous1()
+
+
     def show_time_picker(self):
         time_picker = MDTimePicker()
         time_picker.bind(on_save=self.on_time_save, on_cancel=self.on_time_cancel)
@@ -467,6 +482,7 @@ class MyApp(MDApp):
                           id_direccion, self.root.get_screen('main').ids.max_personas.text, 0, 1)
 
         quedada.insertar_quedada()
+        self.reset_and_go_to_first_screen()
 
 ####### LOGIN ##########################################################################################################
 

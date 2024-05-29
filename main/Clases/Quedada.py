@@ -76,9 +76,9 @@ class Quedada:
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO Quedada (nombre, descripcion, user_organiza, fecha, hora, direccion, max_personas, numero_personas) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO Quedada (nombre, descripcion, user_organiza, fecha, hora, direccion, max_personas, numero_personas, active) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)",
             (self.nombre, self.descripcion, self.user_organiza, self.fecha, self.hora, self.direccion,
-             self.max_personas, self.numero_personas))
+             self.max_personas, self.numero_personas,self.active))
         self.id_quedada = cursor.lastrowid
         conn.commit()
         conn.close()
