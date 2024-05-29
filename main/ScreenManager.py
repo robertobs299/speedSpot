@@ -18,10 +18,6 @@ from main.Clases import conexion
 from main.Clases.User import User
 
 
-
-
-
-
 ###### REGISTRO #######################################################################################################
 def validate_email(email):
     pattern = re.compile(r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+")
@@ -94,6 +90,7 @@ def registrar(email, password, username,name, surname, postalcode, phone,):
     # Confirmar los cambios y cerrar la conexión
     conn.commit()
     conn.close()
+    return iduser
 
 ###### CREAR QUEDADA ###################################################################################################
 def insertarCoordenadas(latitud, longitud):
@@ -199,9 +196,12 @@ def encrypt_password(password):
 
 
 class MyApp(MDApp):
+    user = None
     historial_list = []
     dark_theme = True
     def build(self):
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Amber"
         sm = ScreenManager()
         sm.add_widget(Builder.load_file('Login.kv'))
         sm.add_widget(Builder.load_file('main.kv'))
@@ -410,10 +410,10 @@ class MyApp(MDApp):
 
 
     def check_theme(self):
-        if self.dark_theme:
-            return 0
-        else:
+        if self.theme_cls.theme_style == "Dark":
             return 1
+        else:
+            return 0
 
     def next1(self):
         self.root.get_screen('main').ids.slide.load_next(mode="next")
@@ -463,8 +463,8 @@ class MyApp(MDApp):
 
         actualizar_coordenadas_direccion(id_direccion, id_corrdenadas)
 
-        quedada = Quedada(None, self.root.get_screen('main').ids.nombre.text, self.root.get_screen('main').ids.descripcion.text, 1, self.fecha, self.hora,
-                          id_direccion, self.root.ids.max_personas.text, 0, 1)
+        quedada = Quedada(None, self.root.get_screen('main').ids.nombre.text, self.root.get_screen('main').ids.descripcion.text, self.user.id, self.fecha, self.hora,
+                          id_direccion, self.root.get_screen('main').ids.max_personas.text, 0, 1)
 
         quedada.insertar_quedada()
 
@@ -473,8 +473,10 @@ class MyApp(MDApp):
     def login(self):
         self.root.get_screen('login').ids.error_password.opacity = 0
         self.root.get_screen('login').ids.error_username.opacity = 0
-        if self.root.get_screen('login').ids.username.text == "" or self.root.get_screen('login').ids.password.text == "":
-            anim = Animation(x=self.root.get_screen('login').ids.btn_login.x + 10, duration=0.1) + Animation(x=self.root.get_screen('login').ids.btn_login.x - 10,
+        if self.root.get_screen('login').ids.username.text == "" or self.root.get_screen(
+                'login').ids.password.text == "":
+            anim = Animation(x=self.root.get_screen('login').ids.btn_login.x + 10, duration=0.1) + Animation(
+                x=self.root.get_screen('login').ids.btn_login.x - 10,
                 duration=0.1)
             anim.repeat = 3
             anim.start(self.root.get_screen('login').ids.btn_login)
@@ -484,11 +486,11 @@ class MyApp(MDApp):
             password = self.root.get_screen('login').ids.password.text
 
             # Comprobar si el usuario y la contraseña son correctos Usando la clase User
-            user = User(None, None, None, None, None, None)
-            user = user.validate_user(username, encrypt_password(password))
-            if user:
+            temp_user = User(None, None, None, None, None, None)
+            validated_user = temp_user.validate_user(username, encrypt_password(password))
+            if validated_user:
                 print("Inicio de sesión correcto")
-                #Obtener datos del usuario
+                self.user = validated_user  # Guarda el usuario validado en self.user
                 self.root.current = 'main'
             else:
                 self.root.get_screen('login').ids.error_username.opacity = 100
@@ -575,8 +577,11 @@ class MyApp(MDApp):
         else:
             self.root.get_screen('singin').ids.error_confirm_password.opacity = 0
 
-        registrar(self.root.get_screen('singin').ids.email.text, self.root.get_screen('singin').ids.password.text, self.root.get_screen('singin').ids.username.text,
+        id_user = registrar(self.root.get_screen('singin').ids.email.text, self.root.get_screen('singin').ids.password.text, self.root.get_screen('singin').ids.username.text,
                   self.root.get_screen('singin').ids.nombre.text, self.root.get_screen('singin').ids.apellidos.text, self.root.get_screen('singin').ids.cp.text, self.root.get_screen('singin').ids.telefono.text)
+
+        self.user= User(None, None, None, None, None, id_user).get_user()
+
         self.root.current = 'main'
 
 
