@@ -7,7 +7,7 @@ from pruebas.RobertoPruebas import conexion
 
 class Quedada:
     def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, direccion,
-                 max_personas, numero_personas, active):
+                 max_personas, numero_personas, active, imagen):
         self.id_quedada = id_quedada
         self.nombre = nombre
         self.descripcion = descripcion
@@ -18,6 +18,7 @@ class Quedada:
         self.max_personas = max_personas
         self.numero_personas = numero_personas
         self.active = active
+        self.imagen = imagen
 
     @staticmethod
     def recuperar_quedadas(filtros=None):
