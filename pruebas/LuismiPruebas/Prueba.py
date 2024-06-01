@@ -11,7 +11,7 @@ from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.scrollview import MDScrollView
 from main.Clases import conexion
-from main.Clases.Quedada import Quedada
+from main.Clases.Quedada import Quedada2
 
 KV = """
 MDScreen:
@@ -154,7 +154,7 @@ class MainApp(MDApp):
 
     def on_start(self):
         # Obtén la primera quedada de la base de datos
-        primera_quedada = Quedada.get_last_five()[0]  # Suponiendo que el método devuelve una lista
+        primera_quedada = Quedada2.get_last_five()[0]  # Suponiendo que el método devuelve una lista
         self.current_quedada_id = primera_quedada.id_quedada  # Guardar el ID de la quedada actual
         self.display_quedada(primera_quedada)
         self.load_photos_for_quedada(primera_quedada.id_quedada)  # Cargar fotos para la quedada
@@ -163,10 +163,10 @@ class MainApp(MDApp):
         # Actualiza los widgets con la información de la quedada
         self.root.ids.nombre.text += quedada.nombre
         self.root.ids.descripcion.text += quedada.descripcion
-        self.root.ids.user_organiza.text += str(quedada.user_organiza)
+        self.root.ids.user_organiza.text += f"{quedada.organizador_nombre} {quedada.organizador_apellidos}"
         self.root.ids.fecha.text += str(quedada.fecha)  # Asegúrate de formatear la fecha según tus necesidades
         self.root.ids.hora.text += str(quedada.hora)
-        self.root.ids.direccion.text += str(quedada.direccion)
+        self.root.ids.direccion.text += f"{quedada.tipo_via} {quedada.direccion}, {quedada.cp}"
         self.root.ids.max_personas.text += str(quedada.max_personas)
         self.root.ids.numero_personas.text += str(quedada.numero_personas)
 

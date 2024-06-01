@@ -131,3 +131,52 @@ class Quedada:
 
 
 
+class Quedada2:
+    def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, cp, tipo_via, direccion, max_personas, numero_personas, organizador_nombre, organizador_apellidos):
+        self.id_quedada = id_quedada
+        self.nombre = nombre
+        self.descripcion = descripcion
+        self.user_organiza = user_organiza
+        self.fecha = fecha
+        self.hora = hora
+        self.cp = cp
+        self.tipo_via = tipo_via
+        self.direccion = direccion
+        self.max_personas = max_personas
+        self.numero_personas = numero_personas
+        self.organizador_nombre = organizador_nombre
+        self.organizador_apellidos = organizador_apellidos
+
+    @staticmethod
+    def get_last_five():
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT q.id_quedada, q.nombre, q.descripcion, q.user_organiza, q.fecha, q.hora, d.cp, d.tipo_via, d.direccion, q.max_personas, q.numero_personas, u.nombre, u.apellidos
+            FROM Quedada q
+            JOIN User u ON q.user_organiza = u.id_user
+            JOIN Direccion d ON q.direccion = d.id_direccion
+            ORDER BY q.fecha DESC
+            LIMIT 5
+        """)
+        quedadas = []
+        for row in cursor.fetchall():
+            quedada = Quedada2(
+                id_quedada=row[0],
+                nombre=row[1],
+                descripcion=row[2],
+                user_organiza=row[3],
+                fecha=row[4],
+                hora=row[5],
+                cp=row[6],
+                tipo_via=row[7],
+                direccion=row[8],
+                max_personas=row[9],
+                numero_personas=row[10],
+                organizador_nombre=row[11],
+                organizador_apellidos=row[12]
+            )
+            quedadas.append(quedada)
+        cursor.close()
+        conn.close()
+        return quedadas
