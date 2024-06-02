@@ -1,11 +1,17 @@
 import re
+import tempfile
+import urllib
+import urllib.request
+import paramiko
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.bubble import Bubble
 from kivy_garden.mapview import MapView, MapMarkerPopup
 from kivymd.uix.card import MDCard
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivy.metrics import dp
 from kivymd.uix.pickers import MDTimePicker, MDDatePicker
 from main.Clases.Quedada import Quedada
@@ -13,7 +19,7 @@ import hashlib
 from kivy.animation import Animation
 from kivymd.app import MDApp
 from kivy.lang import Builder
-from kivy.uix.image import Image
+from kivy.uix.image import Image, Loader
 from main.Clases import conexion
 from main.Clases.User import User
 
@@ -150,6 +156,18 @@ def change_marker(map_view, lat, lon, text):
 
     return marker
 
+def load_image_from_url(url):
+    with urllib.request.urlopen(url) as response:
+        img_data = response.read()
+    # Create a temporary file
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    # Write the image data to the temporary file
+    temp_file.write(img_data)
+    # Close the file
+    temp_file.close()
+    # Return the path to the temporary file
+    return temp_file.name
+
 
 class ClickableMapView(MapView):
     current_marker = None
@@ -199,9 +217,14 @@ class MyApp(MDApp):
     user = None
     historial_list = []
     dark_theme = True
+
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Amber"
+        self.file_manager = MDFileManager(
+            exit_manager=self.exit_manager,
+            select_path=self.select_path,
+        )
         sm = ScreenManager()
         sm.add_widget(Builder.load_file('Login.kv'))
         sm.add_widget(Builder.load_file('main.kv'))
@@ -230,6 +253,8 @@ class MyApp(MDApp):
         for quedada in quedadas:
             self.add_card(quedada)
 
+
+
     def add_card(self, quedada):
         card = MDCard(
             size_hint=(1, None),
@@ -244,13 +269,25 @@ class MyApp(MDApp):
             padding=dp(10),
             spacing=dp(10),
         )
-
-        image = Image(
-            # source="moto.jpg",  # Reemplazar con quedada.imagen_url si se tiene la URL de la imagen
-            size_hint_y=None,
-            allow_stretch=True,
-            height=dp(250),
-        )
+        if quedada.imagen is not None:
+            url = load_image_from_url(quedada.imagen)
+            image = Image(
+                source=url,  # Load image from URL
+                size_hint_y=None,
+                allow_stretch=True,
+                height=dp(250),
+            )
+            # Add the card to a layout or return it
+        else:
+            print("No image URL provided for this quedada.")
+            # Handle the case where quedada.imagen is None
+            # You can set a default image here if you want
+            image = Image(
+                source='moto.jpg',  # Default image
+                size_hint_y=None,
+                allow_stretch=True,
+                height=dp(250),
+            )
 
         title_label = MDLabel(
             text=quedada.nombre,
@@ -385,7 +422,7 @@ class MyApp(MDApp):
 ######### CREAR QUEDADA ################################################################################################
     fecha = ""
     hora = ""
-
+    ruta_imagen = None
     def reset_and_go_to_first_screen(self):
         # Restablecer todos los campos de entrada
         self.root.get_screen('main').ids.nombre.text = ""
@@ -432,7 +469,29 @@ class MyApp(MDApp):
         else:
             return 0
 
+    def show_missing_fields_dialog(self, missing_fields):
+        close_button = MDFlatButton(text='Cerrar',
+                                    on_release=lambda x: dialog.dismiss())  # Botón para cerrar el diálogo
+        dialog = MDDialog(title="Campos faltantes:", auto_dismiss=False, buttons=[close_button])
+        dialog.text = missing_fields  # Añadir el texto directamente al diálogo
+        dialog.open()
+
+
     def next1(self):
+        missing_fields = ""
+        if not self.root.get_screen('main').ids.nombre.text:
+            missing_fields += "Nombre, "
+        if not self.root.get_screen('main').ids.descripcion.text:
+            missing_fields += "Descripción, "
+        if not self.root.get_screen('main').ids.max_personas.text:
+            missing_fields+= "Máximo de personas, "
+        if self.fecha == "":
+            missing_fields += "Fecha, "
+        if self.hora == "":
+            missing_fields += "Hora, "
+        if missing_fields:
+            self.show_missing_fields_dialog(missing_fields)
+            return
         self.root.get_screen('main').ids.slide.load_next(mode="next")
         self.root.get_screen('main').ids.icon1_progreso.text_color = self.theme_cls.primary_color
         anim = Animation(value=100, duration=1)
@@ -440,12 +499,17 @@ class MyApp(MDApp):
         self.root.get_screen('main').ids.icon1_progreso.icon = "check-circle"
 
     def next2(self):
-        if not self.root.get_screen('main').ids.cp.text or not self.root.get_screen('main').ids.direccion.text or not self.root.get_screen('main').ids.numero.text:
-            # Si alguno de los campos está vacío, agitar el botón y salir del método
-            anim = Animation(x=self.root.get_screen('main').ids.nombre.x + 10, duration=0.1) + Animation(x=self.root.get_screen('main').ids.nombre.x - 10,
-                                                                                      duration=0.1)
-            anim.repeat = 3
-            anim.start(self.root.get_screen('main').ids.next2)
+        missing_fields = ""
+        if not self.root.get_screen('main').ids.tipo_via.text:
+            missing_fields += "Tipo de vía,"
+        if not self.root.get_screen('main').ids.direccion.text:
+            missing_fields += "Dirección, "
+        if not self.root.get_screen('main').ids.numero.text:
+            missing_fields += "Número, "
+        if not self.root.get_screen('main').ids.cp.text:
+            missing_fields +="Código postal, "
+        if missing_fields:
+            self.show_missing_fields_dialog(missing_fields)
             return
 
         self.root.get_screen('main').ids.slide.load_next(mode="next")
@@ -481,10 +545,37 @@ class MyApp(MDApp):
         actualizar_coordenadas_direccion(id_direccion, id_corrdenadas)
 
         quedada = Quedada(None, self.root.get_screen('main').ids.nombre.text, self.root.get_screen('main').ids.descripcion.text, self.user.id, self.fecha, self.hora,
-                          id_direccion, self.root.get_screen('main').ids.max_personas.text, 0, 1)
+                          id_direccion, self.root.get_screen('main').ids.max_personas.text, 0, 1, self.ruta_imagen)
 
-        quedada.insertar_quedada()
+        idQuedada = quedada.insertar_quedada()
         self.reset_and_go_to_first_screen()
+        if self.ruta_imagen != None:
+            Quedada.updateFotoQuedada(idQuedada,self.ruta_imagen)
+
+    def file_manager_open(self):
+        self.file_manager.show('/')
+
+    def select_path(self, path):
+        self.exit_manager()
+        self.upload_image_to_server_and_save_to_db(path)
+
+    def exit_manager(self, *args):
+        self.file_manager.close()
+
+    def upload_image_to_server_and_save_to_db(self, path):
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(hostname='165.227.130.67', port=22, username='root', password='Ballesta123?Rata')
+
+        ruta_imagen_local = path.replace('\\', '/')
+        ruta_imagen_remota = '/var/www/html/' + ruta_imagen_local.split('/')[-1]
+        with ssh_client.open_sftp() as sftp:
+            sftp.put(ruta_imagen_local, ruta_imagen_remota)
+        ssh_client.close()
+
+        ruta_imagen = 'http://165.227.130.67/' + ruta_imagen_local.split('/')[-1]
+        self.ruta_imagen = ruta_imagen
+
 
 ####### LOGIN ##########################################################################################################
 
@@ -572,7 +663,7 @@ class MyApp(MDApp):
         anim = Animation(value=0, duration=1)
         anim.start(self.root.get_screen('singin').ids.progress1)
         # poner el icon1_progreso en blanco
-        self.root.get_screen('singin').ids.icon1_progreso.icon = "numeric-1-circle"
+        self.root.get_screen('singin').ids.icon1_progreso.icon = "information"
 
     def previous2_singin(self):
         self.root.get_screen('singin').ids.slide.load_previous()
@@ -580,7 +671,7 @@ class MyApp(MDApp):
         self.root.get_screen('singin').ids.icon2_progreso.text_color = color,color,color,1
         anim = Animation(value=0, duration=1)
         anim.start(self.root.get_screen('singin').ids.progress2)
-        self.root.get_screen('singin').ids.icon2_progreso.icon = "numeric-2-circle"
+        self.root.get_screen('singin').ids.icon2_progreso.icon = "map-marker"
 
     def comprobarContraseñas(self):
         if is_valid_password(self.root.get_screen('singin').ids.password.text):

@@ -1,4 +1,3 @@
-import mysql.connector
 
 from pruebas.RobertoPruebas import conexion
 

@@ -83,6 +83,7 @@ class Quedada:
         self.id_quedada = cursor.lastrowid
         conn.commit()
         conn.close()
+        return self.id_quedada
 
     @staticmethod
     def get_last_five(): # es mentira te las devuelve todas jijiji era bait
@@ -128,7 +129,13 @@ class Quedada:
         conn.commit()
         conn.close()
 
-
+    @staticmethod
+    def updateFotoQuedada(id_quedada, ruta_imagen):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE Quedada SET image = %s WHERE id_quedada = %s", (ruta_imagen, id_quedada))
+        conn.commit()
+        conn.close()
 
 
 class Quedada2:
