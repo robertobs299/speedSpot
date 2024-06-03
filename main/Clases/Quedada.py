@@ -187,3 +187,21 @@ class Quedada2:
         cursor.close()
         conn.close()
         return quedadas
+
+    @staticmethod
+    def unirse(id_user, id_quedada):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO Asiste (user_id, quedada_id) VALUES (%s, %s)", (id_user, id_quedada))
+        cursor.execute("UPDATE Quedada SET numero_personas = numero_personas + 1 WHERE id_quedada = %s", (id_quedada,))
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def desapuntarse(id_user, id_quedada):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM Asiste WHERE user_id = %s AND quedada_id = %s", (id_user, id_quedada))
+        cursor.execute("UPDATE Quedada SET numero_personas = numero_personas - 1 WHERE id_quedada = %s", (id_quedada,))
+        conn.commit()
+        conn.close()

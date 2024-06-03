@@ -11,6 +11,8 @@ from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.card import MDCard
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
 from kivy.uix.image import Image
 from kivy.metrics import dp
 from main.Clases import conexion
@@ -92,11 +94,12 @@ MDScreen:
                     text_color: (1, 0.843, 0, 1)
 
             MDRaisedButton:
+                id: signup_button
                 text: "Inscribirse"
                 md_bg_color: app.theme_cls.primary_color
                 size_hint_x: 0.5
                 pos_hint: {"center_x": .5}
-                on_release: app.toggle_sign_up
+                on_release: app.toggle_sign_up(self)
 
             ClickableMapView:
                 id: map_view
@@ -140,6 +143,7 @@ class ClickableMapView(MapView):
 
 class MainApp(MDApp):
     current_quedada_id = None  # Atributo para guardar el ID de la quedada actual
+    confirm_dialog = None  # Atributo para el diálogo de confirmación
 
     def build(self):
         self.theme_cls.theme_style = "Dark"
@@ -168,6 +172,7 @@ class MainApp(MDApp):
         self.current_quedada_id = primera_quedada.id_quedada  # Guardar el ID de la quedada actual
         self.display_quedada(primera_quedada)
         self.load_photos_for_quedada(primera_quedada.id_quedada)  # Cargar fotos para la quedada
+        self.check_user_signup_status(6, primera_quedada.id_quedada)  # Verificar el estado de inscripción del usuario al inicio
 
     def display_quedada(self, quedada):
         # Actualiza los widgets con la información de la quedada
@@ -213,9 +218,11 @@ class MainApp(MDApp):
         ruta_imagen = 'http://165.227.130.67/' + ruta_imagen_local.split('/')[-1]
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO Fotos_quedada (quedada_id, user_id, enlace_foto) VALUES (%s, %s, %s)", (self.current_quedada_id, 1, ruta_imagen))
+        cursor.execute("INSERT INTO Fotos_quedada (quedada_id, user_id, enlace_foto) VALUES (%s, %s, %s)",
+                       (self.current_quedada_id, 6, ruta_imagen))
         conn.commit()
         cursor.close()
+        conn.close()
 
     def load_photos_for_quedada(self, quedada_id):
         conn = conexion.connect_to_database()
@@ -226,8 +233,7 @@ class MainApp(MDApp):
         conn.close()
 
         if not fotos:
-            # Añadir una imagen predeterminada si no hay fotos
-            default_image = AsyncImage(source='ruta/a/tu/imagen_predeterminada.png')
+            default_image = AsyncImage(source='default.jpeg')
             self.root.ids.carousel.add_widget(default_image)
         else:
             for foto in fotos:
@@ -237,74 +243,59 @@ class MainApp(MDApp):
 
     def toggle_sign_up(self, instance):
         if instance.text == 'Inscribirse':
-            instance.text = 'Desapuntarse'
-            instance.md_bg_color = (1, 0, 0, 1)  # Rojo
-            Quedada2.unirse(1, self.current_quedada_id)  # Suponiendo que 1 es el user_id del usuario actual
+            print("Intentando inscribirse...")
+            if not self.check_if_user_is_registered(6, self.current_quedada_id):
+                instance.text = 'Desapuntarse'
+                instance.md_bg_color = (1, 0, 0, 1)  # Rojo
+                resultado = Quedada2.unirse(6, self.current_quedada_id)  # Suponiendo que 6 es el user_id del usuario actual
+                print(f"Resultado de inscribirse: {resultado}")
+            else:
+                print("El usuario ya está inscrito.")
         else:
-            instance.text = 'Inscribirse'
-            instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
-            Quedada2.desapuntarse(1, self.current_quedada_id)
+            self.show_confirm_dialog(instance)
 
-    def update_historial(self):
-        historial_container = self.root.get_screen('main').ids.historial_list
-        historial_container.clear_widgets()
-
-        for event in self.historial_list:
-            card = MDCard(
-                size_hint=(None, None),
-                size=(dp(400), dp(460)),
-                pos_hint={"center_x": 0.5},
-                elevation=10,
-                radius=[15],
+    def show_confirm_dialog(self, instance):
+        if not self.confirm_dialog:
+            self.confirm_dialog = MDDialog(
+                text="¿Estás seguro que quieres desapuntarte?",
+                buttons=[
+                    MDFlatButton(
+                        text="CANCELAR",
+                        on_release=self.close_dialog
+                    ),
+                    MDFlatButton(
+                        text="CONFIRMAR",
+                        on_release=lambda x: self.unsign_user(instance)
+                    ),
+                ],
             )
+        self.confirm_dialog.open()
 
-            box_layout = MDBoxLayout(
-                orientation='vertical',
-                padding=dp(10),
-                spacing=dp(10),
-            )
+    def close_dialog(self, *args):
+        self.confirm_dialog.dismiss()
 
-            image = Image(
-                source=event['image'],
-                size_hint_y=None,
-                allow_stretch=True,
-                height=dp(250),
-            )
+    def unsign_user(self, instance):
+        self.confirm_dialog.dismiss()
+        print("Intentando desapuntarse...")
+        instance.text = 'Inscribirse'
+        instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
+        resultado = Quedada2.desapuntarse(6, self.current_quedada_id)  # Suponiendo que 6 es el user_id del usuario actual
+        print(f"Resultado de desapuntarse: {resultado}")
 
-            title_label = MDLabel(
-                text=event['title'],
-                halign='center',
-                size_hint_y=None,
-                height=dp(30),
-            )
+    def check_if_user_is_registered(self, user_id, quedada_id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM Asiste WHERE user_id = %s AND quedada_id = %s", (user_id, quedada_id))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result[0] > 0
 
-            participants_label = MDLabel(
-                text=event['participants'],
-                size_hint_y=None,
-                height=dp(30),
-            )
-
-            description_layout = MDBoxLayout(
-                orientation='horizontal',
-                size_hint_y=None,
-                height=dp(60),
-            )
-
-            description_label = MDLabel(
-                text=event['description'],
-                size_hint_x=0.85,
-            )
-
-            description_layout.add_widget(description_label)
-
-            box_layout.add_widget(image)
-            box_layout.add_widget(title_label)
-            box_layout.add_widget(participants_label)
-            box_layout.add_widget(description_layout)
-
-            card.add_widget(box_layout)
-            historial_container.add_widget(card)
-            historial_container.height += card.height + dp(15)  # Update height of BoxLayout
+    def check_user_signup_status(self, user_id, quedada_id):
+        if self.check_if_user_is_registered(user_id, quedada_id):
+            signup_button = self.root.ids.signup_button
+            signup_button.text = 'Desapuntarse'
+            signup_button.md_bg_color = (1, 0, 0, 1)  # Rojo
 
 if __name__ == '__main__':
     MainApp().run()
