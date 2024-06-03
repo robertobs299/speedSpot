@@ -11,8 +11,9 @@ from kivymd.uix.button import MDRaisedButton
 from kivy.uix.image import AsyncImage  # Usamos AsyncImage en lugar de Image
 from kivy.metrics import dp
 from kivymd.uix.pickers import MDTimePicker, MDDatePicker
-from pruebas.RobertoPruebas import conexion
+
 from main.Clases.Quedada import Quedada
+from pruebas.RobertoPruebas import conexion
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
@@ -139,7 +140,7 @@ class MainApp(MDApp):
         self.dark_theme = not self.dark_theme
 
     def on_start(self):
-        quedadas = Quedada.get_last_five()
+        quedadas = Quedada
         for quedada in quedadas:
             self.add_card(quedada)
 
