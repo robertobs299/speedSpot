@@ -18,6 +18,7 @@ from kivy.metrics import dp
 from main.Clases import conexion
 from main.Clases.Quedada import Quedada2
 
+#Pantalla que contiene la informacion al completo de una quedada
 KV = """
 MDScreen:
     MDScrollView:
@@ -111,6 +112,7 @@ MDScreen:
                 pos_hint: {"center_x": .5}
 """
 
+#Clase que permite hacer click en el mapa
 class ClickableMapView(MapView):
     current_marker = None
 
@@ -121,15 +123,15 @@ class ClickableMapView(MapView):
             touch_lat, touch_lon = self.get_latlon_at(*touch.pos)
             if self.current_marker:
                 self.remove_widget(self.current_marker)
-            self.current_marker = self.change_marker(touch_lat, touch_lon, "You clicked here")
+            self.current_marker = self.cambiar_marcador(touch_lat, touch_lon, "You clicked here")
             return True
         return super().on_touch_down(touch)
 
     def on_touch_up(self, touch):
         self.parent.scroll_enabled = True
         return super().on_touch_up(touch)
-
-    def change_marker(self, lat, lon, text):
+#Metodo que permite cambiar el marcador del mapa
+    def cambiar_marcador(self, lat, lon, text):
         marker = MapMarkerPopup(lat=lat, lon=lon)
         bubble = Bubble()
         box_layout = MDBoxLayout(padding="4dp")
@@ -166,6 +168,7 @@ class MainApp(MDApp):
         conn.close()
         return result  # Retorna una tupla (latitud, longitud) o None si no se encontraron coordenadas
 
+#Metodo que se ejecuta al iniciar la aplicacion para colocar los datos de la quedada
     def on_start(self):
         # Obtén la primera quedada de la base de datos
         primera_quedada = Quedada2.get_last_five()[0]  # Suponiendo que el método devuelve una lista
@@ -174,36 +177,38 @@ class MainApp(MDApp):
         self.load_photos_for_quedada(primera_quedada.id_quedada)  # Cargar fotos para la quedada
         self.check_user_signup_status(6, primera_quedada.id_quedada)  # Verificar el estado de inscripción del usuario al inicio
 
+#Metodo que muestra la informacion de la quedada en la pantalla
     def display_quedada(self, quedada):
         # Actualiza los widgets con la información de la quedada
         self.root.ids.nombre.text += quedada.nombre
         self.root.ids.descripcion.text += quedada.descripcion
         self.root.ids.user_organiza.text += f"{quedada.organizador_nombre} {quedada.organizador_apellidos}"
-        self.root.ids.fecha.text += str(quedada.fecha)  # Asegúrate de formatear la fecha según tus necesidades
+        self.root.ids.fecha.text += str(quedada.fecha)
         self.root.ids.hora.text += str(quedada.hora)
         self.root.ids.direccion.text += f"{quedada.tipo_via} {quedada.direccion}, {quedada.cp}"
         self.root.ids.max_personas.text += str(quedada.max_personas)
         self.root.ids.numero_personas.text += str(quedada.numero_personas)
 
+#Actualiza la galeria de fotos para que se vayan mostrando
     def change_slide(self, dt):
         if len(self.root.ids.carousel.slides) > 1:
             self.root.ids.carousel.load_next()
-
+#Metodo que permite abrir el gestor de archivos
     def file_manager_open(self):
         self.file_manager.show('/')
-
+#Metodo que permite almacenar la ruta del archivo
     def select_path(self, path):
         self.exit_manager()
         self.add_image_to_carousel_and_db(path)
-
+#Metodo que cierra el gestor de archivos
     def exit_manager(self, *args):
         self.file_manager.close()
-
+#Metodo que añade una imagen al carrusel y la sube al servidor
     def add_image_to_carousel_and_db(self, path):
         image = AsyncImage(source=path)
         self.root.ids.carousel.add_widget(image)
         self.upload_image_to_server_and_save_to_db(path)
-
+#Metodo que sube la imagen al servidor y la guarda en la base de datos
     def upload_image_to_server_and_save_to_db(self, path):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -223,7 +228,7 @@ class MainApp(MDApp):
         conn.commit()
         cursor.close()
         conn.close()
-
+#Metodo que carga las fotos de la quedada
     def load_photos_for_quedada(self, quedada_id):
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
@@ -240,7 +245,7 @@ class MainApp(MDApp):
                 enlace_foto = foto[0]
                 image = AsyncImage(source=enlace_foto)
                 self.root.ids.carousel.add_widget(image)
-
+#Metodo que permite inscribirse o desapuntarse de una quedada
     def toggle_sign_up(self, instance):
         if instance.text == 'Inscribirse':
             print("Intentando inscribirse...")
@@ -253,7 +258,7 @@ class MainApp(MDApp):
                 print("El usuario ya está inscrito.")
         else:
             self.show_confirm_dialog(instance)
-
+#Metodo que muestra un dialogo de confirmacion para desapuntarte de la quedada
     def show_confirm_dialog(self, instance):
         if not self.confirm_dialog:
             self.confirm_dialog = MDDialog(
@@ -270,10 +275,10 @@ class MainApp(MDApp):
                 ],
             )
         self.confirm_dialog.open()
-
+#Metodo que cierra el dialogo de confirmacion
     def close_dialog(self, *args):
         self.confirm_dialog.dismiss()
-
+#Meto que desapunta al usuario de la quedada
     def unsign_user(self, instance):
         self.confirm_dialog.dismiss()
         print("Intentando desapuntarse...")
@@ -281,7 +286,7 @@ class MainApp(MDApp):
         instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
         resultado = Quedada2.desapuntarse(6, self.current_quedada_id)  # Suponiendo que 6 es el user_id del usuario actual
         print(f"Resultado de desapuntarse: {resultado}")
-
+#Metodo que comprueba si el usuario esta inscrito en la quedada
     def check_if_user_is_registered(self, user_id, quedada_id):
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
@@ -290,7 +295,7 @@ class MainApp(MDApp):
         cursor.close()
         conn.close()
         return result[0] > 0
-
+#Metodo que comprueba el estado de inscripcion del usuario
     def check_user_signup_status(self, user_id, quedada_id):
         if self.check_if_user_is_registered(user_id, quedada_id):
             signup_button = self.root.ids.signup_button

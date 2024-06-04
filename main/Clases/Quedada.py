@@ -4,7 +4,7 @@ import mysql.connector
 
 from pruebas.RobertoPruebas import conexion
 
-
+#Clase que contiene la información de una quedada en la base de datos y una serie de métodos para interactuar con ella
 class Quedada:
     def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, direccion,
                  max_personas, numero_personas, active, imagen):
@@ -19,6 +19,7 @@ class Quedada:
         self.numero_personas = numero_personas
         self.active = active
         self.imagen = imagen
+
 
     @staticmethod
     def recuperar_quedadas(filtros=None):
@@ -72,7 +73,7 @@ class Quedada:
         conn.close()
 
         return quedadas
-
+#Método que inserta una quedada en la base de datos
     def insertar_quedada(self):
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
@@ -98,7 +99,7 @@ class Quedada:
                 quedada = Quedada(*row)
                 quedadas.append(quedada)
         return quedadas
-
+#Metodo que devuelve la lista de quedadas a las que un usuario ha asistido
     @staticmethod
     def get_quedadas_user_asist(id_user):
         conn = conexion.connect_to_database()
@@ -111,7 +112,7 @@ class Quedada:
                 quedada = Quedada(*row)
                 quedadas.append(quedada)
         return quedadas
-
+#Metodo que permite al usuario unirse a una quedada
     @staticmethod
     def unirse(id_user,id_quedada):
         conn = conexion.connect_to_database()
@@ -128,7 +129,7 @@ class Quedada:
         cursor.execute("UPDATE Quedada SET numero_personas = numero_personas - 1 WHERE id_quedada = %s", (id_quedada,))
         conn.commit()
         conn.close()
-
+#Metodo que actualiza las fotos que tiene una quedada
     @staticmethod
     def updateFotoQuedada(id_quedada, ruta_imagen):
         conn = conexion.connect_to_database()
@@ -137,7 +138,7 @@ class Quedada:
         conn.commit()
         conn.close()
 
-
+#Clase que contiene informacion extra de otras tablas
 class Quedada2:
     def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, cp, tipo_via, direccion, max_personas, numero_personas, organizador_nombre, organizador_apellidos):
         self.id_quedada = id_quedada

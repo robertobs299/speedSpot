@@ -254,7 +254,7 @@ class MyApp(MDApp):
             self.add_card(quedada)
 
 
-
+#Metodo que crea las tarjetas de las quedadas y las añade al layout
     def add_card(self, quedada):
         card = MDCard(
             size_hint=(1, None),
@@ -279,11 +279,9 @@ class MyApp(MDApp):
             )
             # Add the card to a layout or return it
         else:
-            print("No image URL provided for this quedada.")
-            # Handle the case where quedada.imagen is None
-            # You can set a default image here if you want
+            print("No hay imagen en la bbdd disponible para esta quedada")
             image = Image(
-                source='moto.jpg',  # Default image
+                source='moto.jpg',
                 size_hint_y=None,
                 allow_stretch=True,
                 height=dp(250),
@@ -331,7 +329,7 @@ class MyApp(MDApp):
         card.add_widget(box_layout)
         card.data = {
             "id": quedada.id_quedada,
-            "image": "default_image.jpg",  # Reemplazar con quedada.imagen_url si se tiene la URL de la imagen
+            "image": "default_image.jpg",
             "title": quedada.nombre,
             "participants": f'Nº de participantes: {quedada.numero_personas}',
             "description": quedada.descripcion,
@@ -357,6 +355,7 @@ class MyApp(MDApp):
 
         self.update_historial()
 
+#Metodo que actualiza el historial de quedadas a las que el usuario se ha apuntado
     def update_historial(self):
         historial_container = self.root.get_screen('main').ids.historial_list
         historial_container.clear_widgets()
