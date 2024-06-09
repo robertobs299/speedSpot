@@ -702,7 +702,18 @@ class MyApp(MDApp):
         conn = conexion.connect_to_database()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT c.latitud, c.longitud FROM Coordenadas c JOIN Direccion d ON c.id_direccion = d.id_direccion JOIN Quedada q ON d.id_quedada = q.id_quedada WHERE q.id_quedada = %s",
+            """
+                SELECT 
+                    c.latitud, c.longitud
+                FROM
+                    Coordenadas c
+                        JOIN
+                    Direccion d ON c.id_coordenadas = d.coordenadas
+                        JOIN
+                    Quedada q ON d.id_direccion = q.direccion
+                WHERE
+                    q.id_quedada = %s
+            """,
             (self.current_id_quedada,))
         result = cursor.fetchone()
         cursor.close()
@@ -724,6 +735,21 @@ class MyApp(MDApp):
 
         infoQuedada = Quedada2.get_by_id(self.current_id_quedada)
 
+        coords = self.obtener_coordenadas()
+        if coords is not None:
+            lat, lon = coords
+            lat = float(lat)
+            lon = float(lon)
+            # Accede al mapa
+            map_view = self.root.get_screen('ver_quedada').ids.map_view
+
+            # Centra el mapa en las coordenadas obtenidas
+            map_view.center_on(lat, lon)
+
+            # Si quieres añadir un marcador en las coordenadas puedes usar la función change_marker
+            marker_text = "Your Marker Text"  # Cambia esto por el texto que quieras mostrar en el marcador
+            self.current_marker = change_marker(map_view, lat, lon, marker_text)
+
         self.display_quedada(infoQuedada)
 
         # Carga las fotos para la quedada
@@ -740,11 +766,6 @@ class MyApp(MDApp):
 
 #Metodo que muestra la informacion de la quedada en la pantalla
     def display_quedada(self, quedada):
-        print(f"Mostrando información de la quedada: {quedada.nombre}"
-              f"\nOrganizador: {quedada.organizador_nombre} {quedada.organizador_apellidos}"
-              f"\nFecha: {quedada.fecha}"
-              f"\nHora: {quedada.hora}"
-              f"\nDirección: {quedada.tipo_via} {quedada.direccion}, {quedada.cp}")
 
         # Actualiza los widgets con la información de la quedada
         self.root.get_screen('ver_quedada').ids.nombre.text += quedada.nombre
