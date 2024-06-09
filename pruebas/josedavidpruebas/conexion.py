@@ -24,7 +24,7 @@ def get_user_vehicles(user_id):
     conn = connect_to_database()
     cursor = conn.cursor()
     query = """
-    SELECT m.marca, mo.modelo, v.anio
+    SELECT m.marca, mo.modelo, v.anio, v.cv
     FROM Vehiculo v
     JOIN Modelo mo ON v.id_modelo = mo.id_modelo
     JOIN Marca m ON mo.id_marca = m.id_marca
@@ -35,6 +35,7 @@ def get_user_vehicles(user_id):
     result = cursor.fetchall()
     conn.close()
     return result
+
 def get_quedadas_organizadas(user_id):
     conn = connect_to_database()
     cursor = conn.cursor()
@@ -50,9 +51,27 @@ def get_quedadas_visitadas(user_id):
     result = cursor.fetchone()
     conn.close()
     return result[0] if result else 0
+
+def get_marca_options():
+    try:
+        # Conexión a la base de datos
+        conn = connect_to_database()
+        cursor = conn.cursor()
+        query = "SELECT marca FROM Marca"
+        cursor.execute(query)
+        marcas = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+
+        return marcas
+
+    except mysql.connector.Error as e:
+        print("Error al conectar a la base de datos:", e)
+        return []
+
+
 def get_best_quedada(user_id):
     conn = connect_to_database()
-
     cursor = conn.cursor()
 
     query = """
@@ -65,15 +84,26 @@ def get_best_quedada(user_id):
     ORDER BY q.numero_personas DESC
     LIMIT 1
     """
-
     cursor.execute(query, (user_id,))
     result = cursor.fetchone()
 
+    query2 = """
+        SELECT q.id_quedada, q.nombre, q.fecha, q.numero_personas, f.enlace_foto, d.direccion, p.localidad
+        FROM Quedada q
+        JOIN Fotos_quedada f ON q.id_quedada = f.quedada_id
+        JOIN Direccion d ON q.direccion = d.id_direccion
+        JOIN Postal_code p ON d.cp = p.id_cp
+        ORDER BY q.numero_personas DESC
+        LIMIT 1
+    """
+    cursor.execute(query2)
+    result2 = cursor.fetchone()
+
     conn.close()
 
-    return result
+    return result if result else result2
 
-def add_vehicle(user_id, marca, modelo, anio, cv, tipo):
+def add_vehicle(user_id, marca, modelo, anio, cv):
     try:
         connection = connect_to_database()
         cursor = connection.cursor()
@@ -101,3 +131,4 @@ def add_vehicle(user_id, marca, modelo, anio, cv, tipo):
         if connection.is_connected():
             cursor.close()
             connection.close()
+
