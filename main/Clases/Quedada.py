@@ -206,3 +206,38 @@ class Quedada2:
         cursor.execute("UPDATE Quedada SET numero_personas = numero_personas - 1 WHERE id_quedada = %s", (id_quedada,))
         conn.commit()
         conn.close()
+
+    @staticmethod
+    def get_by_id(id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT q.id_quedada, q.nombre, q.descripcion, q.user_organiza, q.fecha, q.hora, d.cp, d.tipo_via, d.direccion, q.max_personas, q.numero_personas, u.nombre, u.apellidos
+            FROM Quedada q
+            JOIN User u ON q.user_organiza = u.id_user
+            JOIN Direccion d ON q.direccion = d.id_direccion
+            WHERE q.id_quedada = %s
+        """, (id,))
+
+        row = cursor.fetchone()
+        if row is not None:
+            quedada = Quedada2(
+                id_quedada=row[0],
+                nombre=row[1],
+                descripcion=row[2],
+                user_organiza=row[3],
+                fecha=row[4],
+                hora=row[5],
+                cp=row[6],
+                tipo_via=row[7],
+                direccion=row[8],
+                max_personas=row[9],
+                numero_personas=row[10],
+                organizador_nombre=row[11],
+                organizador_apellidos=row[12]
+            )
+        else:
+            quedada = None
+        cursor.close()
+        conn.close()
+        return quedada

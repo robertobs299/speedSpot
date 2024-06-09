@@ -18,100 +18,6 @@ from kivy.metrics import dp
 from main.Clases import conexion
 from main.Clases.Quedada import Quedada2
 
-#Pantalla que contiene la informacion al completo de una quedada
-KV = """
-MDScreen:
-    MDScrollView:
-        MDBoxLayout:
-            orientation: 'vertical'
-            padding: "20dp"
-            spacing: "20dp"  # Ajusta el espacio entre los elementos
-            size_hint_y: None
-            height: self.minimum_height
-
-            Carousel:
-                id: carousel
-                size_hint_y: None
-                height: "150dp"
-
-            MDRaisedButton:
-                text: "Añadir Imagen"
-                pos_hint: {"center_x": .5}
-                on_release: app.file_manager_open()
-
-            MDBoxLayout:
-                orientation: 'vertical'
-                padding: "20dp"
-                spacing: "80dp"  # Ajusta el espacio entre los elementos
-                size_hint_y: None
-                height: self.minimum_height
-                MDLabel:
-                    id: nombre
-                    text: "Nombre: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-                    font_style: "H5"
-
-                MDLabel:
-                    id: descripcion
-                    text: "Descripción: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-
-                MDLabel:
-                    id: user_organiza
-                    text: "Organizador: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-
-                MDLabel:
-                    id: fecha
-                    text: "Fecha: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-
-                MDLabel:
-                    id: hora
-                    text: "Hora: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-
-                MDLabel:
-                    id: direccion
-                    text: "Dirección: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-
-                MDLabel:
-                    id: max_personas
-                    text: "Máximo de personas: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-
-                MDLabel:
-                    id: numero_personas
-                    text: "Número de personas: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-
-            MDRaisedButton:
-                id: signup_button
-                text: "Inscribirse"
-                md_bg_color: app.theme_cls.primary_color
-                size_hint_x: 0.5
-                pos_hint: {"center_x": .5}
-                on_release: app.toggle_sign_up(self)
-
-            ClickableMapView:
-                id: map_view
-                lat: 50.6
-                lon: 3.05
-                zoom: 13
-                size_hint_y: None
-                height: dp(300)
-                pos_hint: {"center_x": .5}
-"""
-
 #Clase que permite hacer click en el mapa
 class ClickableMapView(MapView):
     current_marker = None
@@ -155,7 +61,7 @@ class MainApp(MDApp):
             select_path=self.select_path,
         )
         Clock.schedule_interval(self.change_slide, 5)
-        return Builder.load_string(KV)
+        return Builder.load_file('InfoQuedadas.kv')
 
     def obtener_coordenadas(self):
         conn = conexion.connect_to_database()

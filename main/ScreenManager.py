@@ -3,6 +3,7 @@ import tempfile
 import urllib
 import urllib.request
 import paramiko
+from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.bubble import Bubble
 from kivy_garden.mapview import MapView, MapMarkerPopup
@@ -14,12 +15,12 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivy.metrics import dp
 from kivymd.uix.pickers import MDTimePicker, MDDatePicker
-from main.Clases.Quedada import Quedada
+from main.Clases.Quedada import Quedada, Quedada2
 import hashlib
 from kivy.animation import Animation
 from kivymd.app import MDApp
 from kivy.lang import Builder
-from kivy.uix.image import Image, Loader
+from kivy.uix.image import Image, Loader, AsyncImage
 from main.Clases import conexion
 from main.Clases.User import User
 
@@ -217,7 +218,8 @@ class MyApp(MDApp):
     user = None
     historial_list = []
     dark_theme = True
-
+    current_id_quedada = 0
+    confirm_dialog = None
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Amber"
@@ -294,11 +296,6 @@ class MyApp(MDApp):
             height=dp(30),
         )
 
-        participants_label = MDLabel(
-            text=f'Participantes: {quedada.numero_personas}',
-            size_hint_y=None,
-            height=dp(30),
-        )
         description_layout = MDBoxLayout(
             orientation='horizontal',
             size_hint_y=None,
@@ -311,10 +308,10 @@ class MyApp(MDApp):
         )
 
         sign_up_button = MDRaisedButton(
-            text='Inscribirse',
+            text='Ver Quedada',
             md_bg_color=self.theme_cls.primary_color,
             size_hint_x=0.15,
-            on_release=self.toggle_sign_up
+            on_release=self.on_view_quedadas_button_press
 
         )
 
@@ -323,7 +320,6 @@ class MyApp(MDApp):
 
         box_layout.add_widget(image)
         box_layout.add_widget(title_label)
-        box_layout.add_widget(participants_label)
         box_layout.add_widget(description_layout)
 
         card.add_widget(box_layout)
@@ -338,22 +334,30 @@ class MyApp(MDApp):
         self.root.get_screen('main').ids.card_list.add_widget(card)
         self.root.get_screen('main').ids.card_list.height += card.height + dp(15)  # Update height of BoxLayout
 
-    def toggle_sign_up(self, instance):
+    def ver_id_quedada(self,instance):
         parent_card = instance.parent.parent.parent
         card_data = parent_card.data
-
-        if instance.text == 'Inscribirse':
-            instance.text = 'Desapuntarse'
-            instance.md_bg_color = (1, 0, 0, 1)  # Rojo
-            Quedada.unirse(self.user.id, card_data['id'])
-            self.historial_list.insert(0, card_data)
-        else:
-            instance.text = 'Inscribirse'
-            instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
-            Quedada.desapuntarse(self.user.id, card_data['id'])
-            self.historial_list.remove(card_data)
-
-        self.update_historial()
+        self.current_id_quedada = card_data['id']
+        print (f"{self.current_id_quedada}")
+        sm = ScreenManager()
+        sm.add_widget(Builder.load_file('infoQuedadas.kv'))
+        sm.current = 'ver_quedada'
+    # def toggle_sign_up(self, instance):
+    #     parent_card = instance.parent.parent.parent
+    #     card_data = parent_card.data
+    #
+    #     if instance.text == 'Inscribirse':
+    #         instance.text = 'Desapuntarse'
+    #         instance.md_bg_color = (1, 0, 0, 1)  # Rojo
+    #         Quedada.unirse(self.user.id, card_data['id'])
+    #         self.historial_list.insert(0, card_data)
+    #     else:
+    #         instance.text = 'Inscribirse'
+    #         instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
+    #         Quedada.desapuntarse(self.user.id, card_data['id'])
+    #         self.historial_list.remove(card_data)
+    #
+    #     self.update_historial()
 
 #Metodo que actualiza el historial de quedadas a las que el usuario se ha apuntado
     def update_historial(self):
@@ -693,8 +697,187 @@ class MyApp(MDApp):
         self.root.current = 'main'
 
 
+############# VER DETALLES QUEDADA #####################################################################################
+    def obtener_coordenadas(self):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT c.latitud, c.longitud FROM Coordenadas c JOIN Direccion d ON c.id_direccion = d.id_direccion JOIN Quedada q ON d.id_quedada = q.id_quedada WHERE q.id_quedada = %s",
+            (self.current_id_quedada,))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result  # Retorna una tupla (latitud, longitud) o None si no se encontraron coordenadas
 
+#Metodo que se ejecuta al iniciar la aplicacion para colocar los datos de la quedada
+    def on_view_quedadas_button_press(self,instance):
+        parent_card = instance.parent.parent.parent
+        card_data = parent_card.data
+        self.current_id_quedada = card_data['id']
+        if self.user is None:
+            print("Por favor, inicia sesión para ver las quedadas.")
+            return
+        # Comprueba si la pantalla 'ver_quedada' ya existe
+        if 'ver_quedada' not in self.root.screen_names:
+            # Si no existe, añádela
+            self.root.add_widget(Builder.load_file('infoQuedadas.kv'))
 
+        infoQuedada = Quedada2.get_by_id(self.current_id_quedada)
+
+        self.display_quedada(infoQuedada)
+
+        # Carga las fotos para la quedada
+        self.load_photos_for_quedada(self.current_id_quedada)
+
+        # Verifica el estado de inscripción del usuario
+        self.check_user_signup_status(self.user.id, self.current_id_quedada)
+
+        # Cambia a la pantalla 'ver_quedada'
+        self.root.current = 'ver_quedada'
+
+        # Programa el cambio de diapositiva
+        Clock.schedule_interval(self.change_slide, 3)  # Cambia de diapositiva cada 3 segundos
+
+#Metodo que muestra la informacion de la quedada en la pantalla
+    def display_quedada(self, quedada):
+        print(f"Mostrando información de la quedada: {quedada.nombre}"
+              f"\nOrganizador: {quedada.organizador_nombre} {quedada.organizador_apellidos}"
+              f"\nFecha: {quedada.fecha}"
+              f"\nHora: {quedada.hora}"
+              f"\nDirección: {quedada.tipo_via} {quedada.direccion}, {quedada.cp}")
+
+        # Actualiza los widgets con la información de la quedada
+        self.root.get_screen('ver_quedada').ids.nombre.text += quedada.nombre
+        self.root.get_screen('ver_quedada').ids.descripcion.text += quedada.descripcion
+        self.root.get_screen('ver_quedada').ids.user_organiza.text += f"{quedada.organizador_nombre} {quedada.organizador_apellidos}"
+        self.root.get_screen('ver_quedada').ids.fecha.text += str(quedada.fecha)
+        self.root.get_screen('ver_quedada').ids.hora.text += str(quedada.hora)
+        self.root.get_screen('ver_quedada').ids.direccion.text += f"{quedada.tipo_via} {quedada.direccion}, {quedada.cp}"
+        self.root.get_screen('ver_quedada').ids.max_personas.text += str(quedada.max_personas)
+        self.root.get_screen('ver_quedada').ids.numero_personas.text += str(quedada.numero_personas)
+
+#Actualiza la galeria de fotos para que se vayan mostrando
+    def change_slide(self, dt):
+        if len(self.root.get_screen('ver_quedada').ids.carousel.slides) > 1:
+            self.root.get_screen('ver_quedada').ids.carousel.load_next()
+#Metodo que permite abrir el gestor de archivos
+    def file_manager_open(self):
+        self.file_manager.show('/')
+#Metodo que permite almacenar la ruta del archivo
+    def select_path(self, path):
+        self.exit_manager()
+        self.add_image_to_carousel_and_db(path)
+#Metodo que cierra el gestor de archivos
+    def exit_manager(self, *args):
+        self.file_manager.close()
+#Metodo que añade una imagen al carrusel y la sube al servidor
+    def add_image_to_carousel_and_db(self, path):
+        image = AsyncImage(source=path)
+        self.root.get_screen('ver_quedada').ids.carousel.add_widget(image)
+        self.upload_image_to_server_and_save_to_db(path)
+#Metodo que sube la imagen al servidor y la guarda en la base de datos
+    def upload_image_to_server_and_save_to_db(self, path):
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(hostname='165.227.130.67', port=22, username='root', password='Ballesta123?Rata')
+
+        ruta_imagen_local = path.replace('\\', '/')
+        ruta_imagen_remota = '/var/www/html/' + ruta_imagen_local.split('/')[-1]
+        with ssh_client.open_sftp() as sftp:
+            sftp.put(ruta_imagen_local, ruta_imagen_remota)
+        ssh_client.close()
+
+        ruta_imagen = 'http://165.227.130.67/' + ruta_imagen_local.split('/')[-1]
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO Fotos_quedada (quedada_id, user_id, enlace_foto) VALUES (%s, %s, %s)",
+                       (self.current_id_quedada, self.user.id, ruta_imagen))
+        conn.commit()
+        cursor.close()
+        conn.close()
+#Metodo que carga las fotos de la quedada
+    def load_photos_for_quedada(self, quedada_id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT enlace_foto FROM Fotos_quedada WHERE quedada_id = %s", (quedada_id,))
+        fotos = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        if not fotos:
+            default_image = AsyncImage(source='default.jpeg')
+            self.root.get_screen('ver_quedada').ids.carousel.add_widget(default_image)
+        else:
+            for foto in fotos:
+                enlace_foto = foto[0]
+                image = AsyncImage(source=enlace_foto)
+                self.root.get_screen('ver_quedada').ids.carousel.add_widget(image)
+#Metodo que permite inscribirse o desapuntarse de una quedada
+    def toggle_sign_up(self, instance):
+        if instance.text == 'Inscribirse':
+            print("Intentando inscribirse...")
+            if not self.check_if_user_is_registered(self.user.id, self.current_id_quedada):
+                instance.text = 'Desapuntarse'
+                instance.md_bg_color = (1, 0, 0, 1)  # Rojo
+                resultado = Quedada2.unirse(self.user.id,self.current_id_quedada)  # Suponiendo que 6 es el user_id del usuario actual
+                print(f"Resultado de inscribirse: {resultado}")
+                # Incrementar el número de personas en la quedada
+                num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(": ")[1])
+                self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas: " + str(
+                    num_personas + 1)
+            else:
+                print("El usuario ya está inscrito.")
+        else:
+            self.show_confirm_dialog(instance)
+            # Decrementar el número de personas en la quedada
+
+#Metodo que muestra un dialogo de confirmacion para desapuntarte de la quedada
+    def show_confirm_dialog(self, instance):
+        if not self.confirm_dialog:
+            self.confirm_dialog = MDDialog(
+                text="¿Estás seguro que quieres desapuntarte?",
+                buttons=[
+                    MDFlatButton(
+                        text="CANCELAR",
+                        on_release=self.close_dialog
+                    ),
+                    MDFlatButton(
+                        text="CONFIRMAR",
+                        on_release=lambda x: self.unsign_user(instance),
+                    ),
+                ],
+            )
+        self.confirm_dialog.open()
+#Metodo que cierra el dialogo de confirmacion
+    def close_dialog(self, *args):
+        self.confirm_dialog.dismiss()
+#Meto que desapunta al usuario de la quedada
+    def unsign_user(self, instance):
+        self.confirm_dialog.dismiss()
+        print("Intentando desapuntarse...")
+        instance.text = 'Inscribirse'
+        instance.md_bg_color = self.theme_cls.primary_color  # Ámbar
+        resultado = Quedada2.desapuntarse(self.user.id, self.current_id_quedada)  # Suponiendo que 6 es el user_id del usuario actual
+        print(f"Resultado de desapuntarse: {resultado}")
+        # Decrementar el número de personas en la quedada
+        num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(": ")[1])
+        self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas: " + str(num_personas - 1)
+        self.close_dialog(None)
+
+    #Metodo que comprueba si el usuario esta inscrito en la quedada
+    def check_if_user_is_registered(self, user_id, quedada_id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM Asiste WHERE user_id = %s AND quedada_id = %s", (user_id, quedada_id))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result[0] > 0
+#Metodo que comprueba el estado de inscripcion del usuario
+    def check_user_signup_status(self, user_id, quedada_id):
+        if self.check_if_user_is_registered(user_id, quedada_id):
+            signup_button = self.root.get_screen('ver_quedada').ids.signup_button
+            signup_button.text = 'Desapuntarse'
+            signup_button.md_bg_color = (1, 0, 0, 1)  # Rojo
 if __name__ == '__main__':
     MyApp().run()
-
