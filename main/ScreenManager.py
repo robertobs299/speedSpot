@@ -250,13 +250,7 @@ class MyApp(MDApp):
 
         self.dark_theme = not self.dark_theme  # Cambia el estado del tema
     def on_start(self):
-        # Limpiar la lista de quedadas existentes
-        self.root.get_screen('main').ids.card_list.clear_widgets()
-
-        # Obtener las últimas cinco quedadas
         quedadas = Quedada.get_last_five()
-
-        # Agregar cada quedada a la pantalla
         for quedada in quedadas:
             self.add_card(quedada)
 
@@ -534,6 +528,8 @@ class MyApp(MDApp):
         self.previous1()
 
 
+
+
     def show_time_picker(self):
         time_picker = MDTimePicker()
         time_picker.bind(on_save=self.on_time_save, on_cancel=self.on_time_cancel)
@@ -633,39 +629,25 @@ class MyApp(MDApp):
     def crear_quedada(self):
         id_cp = obtener_id_cp(self.root.get_screen('main').ids.cp.text)
 
-        id_direccion = insertar_direccion(self.root.get_screen('main').ids.tipo_via.text,
-                                          self.root.get_screen('main').ids.direccion.text, id_cp,
+        id_direccion = insertar_direccion(self.root.get_screen('main').ids.tipo_via.text, self.root.get_screen('main').ids.direccion.text, id_cp,
                                           self.root.get_screen('main').ids.numero.text)
 
-        id_corrdenadas = insertarCoordenadas(self.root.get_screen('main').ids.map_view.lat,
-                                             self.root.get_screen('main').ids.map_view.lon)
+        id_corrdenadas = insertarCoordenadas(self.root.get_screen('main').ids.map_view.lat, self.root.get_screen('main').ids.map_view.lon)
 
         actualizar_coordenadas_direccion(id_direccion, id_corrdenadas)
 
-        quedada = Quedada(None, self.root.get_screen('main').ids.nombre.text,
-                          self.root.get_screen('main').ids.descripcion.text, self.user.id, self.fecha, self.hora,
+        quedada = Quedada(None, self.root.get_screen('main').ids.nombre.text, self.root.get_screen('main').ids.descripcion.text, self.user.id, self.fecha, self.hora,
                           id_direccion, self.root.get_screen('main').ids.max_personas.text, 0, 1, self.ruta_imagen)
 
         idQuedada = quedada.insertar_quedada()
         self.reset_and_go_to_first_screen()
         if self.ruta_imagen != None:
-            Quedada.updateFotoQuedada(idQuedada, self.ruta_imagen)
-
-        # Actualizar la pantalla de quedadas
-        self.on_start()
+            Quedada.updateFotoQuedada(idQuedada,self.ruta_imagen)
 
     def file_manager_open(self):
         self.file_manager.show('/')
 
     def select_path(self, path):
-        self.exit_manager()
-        # ver en que pantalla esta y si esta en main llamar a select_path_crear_quedada y si esta en info_quedada llamar a select_path_info_quedada
-        if self.root.current == 'main':
-            self.select_path_crear_quedada(path)
-        if self.root.current == 'info_quedada':
-            self.select_path_info_quedada(path)
-
-    def select_path_crear_quedada(self, path):
         self.exit_manager()
         self.upload_image_to_server_and_save_to_db(path)
 
@@ -887,15 +869,18 @@ class MyApp(MDApp):
 
 #Actualiza la galeria de fotos para que se vayan mostrando
     def change_slide(self, dt):
-        carrousel = self.root.get_screen('ver_quedada').ids.carousel
-        if carrousel.index == len(carrousel.slides) - 1:
-            carrousel.index = 0
-        else:
-            carrousel.load_next()
+        if len(self.root.get_screen('ver_quedada').ids.carousel.slides) > 1:
+            self.root.get_screen('ver_quedada').ids.carousel.load_next()
+#Metodo que permite abrir el gestor de archivos
+    def file_manager_open(self):
+        self.file_manager.show('/')
 #Metodo que permite almacenar la ruta del archivo
-    def select_path_info_quedada(self, path):
+    def select_path(self, path):
         self.exit_manager()
         self.add_image_to_carousel_and_db(path)
+#Metodo que cierra el gestor de archivos
+    def exit_manager(self, *args):
+        self.file_manager.close()
 #Metodo que añade una imagen al carrusel y la sube al servidor
     def add_image_to_carousel(self, image_path):
         # Crear una nueva imagen
@@ -944,6 +929,23 @@ class MyApp(MDApp):
                 enlace_foto = foto[0]
                 image = AsyncImage(source=enlace_foto)
                 self.root.get_screen('ver_quedada').ids.carousel.add_widget(image)
+
+    def reinicio_info_quedada(self):
+        # Restablecer todos los campos de entrada
+
+        self.root.get_screen('ver_quedada').ids.nombre.text = "Nombre:"
+        self.root.get_screen('ver_quedada').ids.descripcion.text = "Descripción:"
+        self.root.get_screen('ver_quedada').ids.user_organiza.text = "Organizador:"
+        self.root.get_screen('ver_quedada').ids.fecha.text = "Fecha:"
+        self.root.get_screen('ver_quedada').ids.hora.text = "Hora:"
+        self.root.get_screen('ver_quedada').ids.direccion.text = "Dirección:"
+        self.root.get_screen('ver_quedada').ids.max_personas.text = "Max. personas:"
+        self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas:"
+
+        self.change_screen('main')
+
+        # Cambiar a la primera pantalla del registro de quedadas
+
 #Metodo que permite inscribirse o desapuntarse de una quedada
     def toggle_sign_up(self, instance):
         if instance.text == 'Inscribirse':

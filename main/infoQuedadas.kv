@@ -1,91 +1,99 @@
 MDScreen:
     name: "ver_quedada"
-    MDScrollView:
-        MDBoxLayout:
-            orientation: 'vertical'
-            padding: "20dp"
-            spacing: "20dp"  # Ajusta el espacio entre los elementos
-            size_hint_y: None
-            height: self.minimum_height
+    MDBoxLayout:
+        orientation: 'vertical'
 
-            Carousel:
-                id: carousel
-                size_hint_y: None
-                height: "150dp"
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"x": 0, "top": 1}
+            on_release: app.reinicio_info_quedada()
 
-            MDRaisedButton:
-                text: "Añadir Imagen"
-                pos_hint: {"center_x": .5}
-                on_release: app.file_manager_open()
-
+        MDScrollView:
             MDBoxLayout:
                 orientation: 'vertical'
                 padding: "20dp"
-                spacing: "80dp"  # Ajusta el espacio entre los elementos
+                spacing: "20dp"  # Ajusta el espacio entre los elementos
                 size_hint_y: None
                 height: self.minimum_height
-                MDLabel:
-                    id: nombre
-                    text: "Nombre: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
-                    font_style: "H5"
 
-                MDLabel:
-                    id: descripcion
-                    text: "Descripción: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
+                Carousel:
+                    id: carousel
+                    size_hint_y: None
+                    height: "150dp"
 
-                MDLabel:
-                    id: user_organiza
-                    text: "Organizador: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
+                MDRaisedButton:
+                    text: "Añadir Imagen"
+                    pos_hint: {"center_x": .5}
+                    on_release: app.file_manager_open()
 
-                MDLabel:
-                    id: fecha
-                    text: "Fecha: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    padding: "20dp"
+                    spacing: "80dp"  # Ajusta el espacio entre los elementos
+                    size_hint_y: None
+                    height: self.minimum_height
+                    MDLabel:
+                        id: nombre
+                        text: "Nombre: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
+                        font_style: "H5"
 
-                MDLabel:
-                    id: hora
-                    text: "Hora: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
+                    MDLabel:
+                        id: descripcion
+                        text: "Descripción: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
 
-                MDLabel:
-                    id: direccion
-                    text: "Dirección: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
+                    MDLabel:
+                        id: user_organiza
+                        text: "Organizador: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
 
-                MDLabel:
-                    id: max_personas
-                    text: "Máximo de personas: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
+                    MDLabel:
+                        id: fecha
+                        text: "Fecha: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
 
-                MDLabel:
-                    id: numero_personas
-                    text: "Número de personas: "
-                    theme_text_color: "Custom"
-                    text_color: (1, 0.843, 0, 1)
+                    MDLabel:
+                        id: hora
+                        text: "Hora: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
 
-            MDRaisedButton:
-                id: signup_button
-                text: "Inscribirse"
-                md_bg_color: app.theme_cls.primary_color
-                size_hint_x: 0.5
-                pos_hint: {"center_x": .5}
-                on_release: app.toggle_sign_up(self)
+                    MDLabel:
+                        id: direccion
+                        text: "Dirección: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
 
-            ClickableMapView:
-                id: map_view
-                lat: 50.6
-                lon: 3.05
-                zoom: 13
-                size_hint_y: None
-                height: dp(300)
-                pos_hint: {"center_x": .5}
+                    MDLabel:
+                        id: max_personas
+                        text: "Máximo de personas: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
+
+                    MDLabel:
+                        id: numero_personas
+                        text: "Número de personas: "
+                        theme_text_color: "Custom"
+                        text_color: (1, 0.843, 0, 1)
+
+                MDRaisedButton:
+                    id: signup_button
+                    text: "Inscribirse"
+                    md_bg_color: app.theme_cls.primary_color
+                    size_hint_x: 0.5
+                    pos_hint: {"center_x": .5}
+                    on_release: app.toggle_sign_up(self)
+
+                ClickableMapView:
+                    id: map_view
+                    lat: 50.6
+                    lon: 3.05
+                    zoom: 13
+                    size_hint_y: None
+                    height: dp(300)
+                    pos_hint: {"center_x": .5}
