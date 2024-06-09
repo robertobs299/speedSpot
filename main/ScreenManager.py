@@ -795,9 +795,9 @@ class MyApp(MDApp):
     def add_image_to_carousel_and_db(self, path):
         image = AsyncImage(source=path)
         self.root.get_screen('ver_quedada').ids.carousel.add_widget(image)
-        self.upload_image_to_server_and_save_to_db(path)
+        self.upload_image_to_server_and_save_to_db_info(path)
 #Metodo que sube la imagen al servidor y la guarda en la base de datos
-    def upload_image_to_server_and_save_to_db(self, path):
+    def upload_image_to_server_and_save_to_db_info(self, path):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh_client.connect(hostname='165.227.130.67', port=22, username='root', password='Ballesta123?Rata')
