@@ -809,10 +809,16 @@ class MyApp(MDApp):
         self.exit_manager()
         self.add_image_to_carousel_and_db(path)
 #Metodo que añade una imagen al carrusel y la sube al servidor
-    def add_image_to_carousel_and_db(self, path):
-        image = AsyncImage(source=path)
-        self.root.get_screen('ver_quedada').ids.carousel.add_widget(image)
-        self.upload_image_to_server_and_save_to_db_info(path)
+    def add_image_to_carousel(self, image_path):
+        # Crear una nueva imagen
+        new_image = AsyncImage(source=image_path)
+
+        # Añadir la nueva imagen al carrusel
+        self.root.get_screen('ver_quedada').ids.carousel.add_widget(new_image)
+
+        # Actualizar el carrusel para mostrar la nueva imagen
+        self.root.get_screen('ver_quedada').ids.carousel.index = len(
+            self.root.get_screen('ver_quedada').ids.carousel.slides) - 1
 #Metodo que sube la imagen al servidor y la guarda en la base de datos
     def upload_image_to_server_and_save_to_db_info(self, path):
         ssh_client = paramiko.SSHClient()
