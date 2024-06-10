@@ -689,10 +689,23 @@ class MyApp(MDApp):
         self.reset_and_go_to_first_screen()
         if self.ruta_imagen != None:
             Quedada.updateFotoQuedada(idQuedada, self.ruta_imagen)
-
+        # Mostrar el diálogo de confirmación
+        self.show_confirmation_dialog()
         # Actualizar la pantalla de quedadas
         self.on_start()
 
+    def show_confirmation_dialog(self):
+        dialog = MDDialog(
+            title="Éxito",
+            text="La quedada se ha creado correctamente.",
+            buttons=[
+                MDFlatButton(
+                    text="Cerrar",
+                    on_release=lambda x: dialog.dismiss()
+                )
+            ]
+        )
+        dialog.open()
     def file_manager_open(self):
         self.file_manager.show('/')
 
@@ -727,137 +740,113 @@ class MyApp(MDApp):
 
 
 ####### LOGIN ##########################################################################################################
+    def show_dialog(self, title, text):
+        self.dialog = MDDialog(
+            title=title,
+            text=text,
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: self.dialog.dismiss()
+                )
+            ],
+        )
+        self.dialog.open()
 
     def login(self):
-        self.root.get_screen('login').ids.error_password.opacity = 0
-        self.root.get_screen('login').ids.error_username.opacity = 0
-        if self.root.get_screen('login').ids.username.text == "" or self.root.get_screen(
-                'login').ids.password.text == "":
-            anim = Animation(x=self.root.get_screen('login').ids.btn_login.x + 10, duration=0.1) + Animation(
-                x=self.root.get_screen('login').ids.btn_login.x - 10,
-                duration=0.1)
+        screen = self.root.get_screen('login')
+        if screen.ids.username.text == "" or screen.ids.password.text == "":
+            anim = Animation(x=screen.ids.btn_login.x + 10, duration=0.1) + Animation(x=screen.ids.btn_login.x - 10,
+                                                                                      duration=0.1)
             anim.repeat = 3
-            anim.start(self.root.get_screen('login').ids.btn_login)
+            anim.start(screen.ids.btn_login)
+            self.show_dialog("Error", "Todos los campos son obligatorios")
             return
+        username = screen.ids.username.text
+        password = screen.ids.password.text
+        temp_user = User(None, None, None, None, None, None)
+        validated_user = temp_user.validate_user(username, encrypt_password(password))
+        if validated_user:
+            self.user = validated_user
+            self.root.current = 'main'
+            self.mostrar_historial()
         else:
-            username = self.root.get_screen('login').ids.username.text
-            password = self.root.get_screen('login').ids.password.text
-
-            # Comprobar si el usuario y la contraseña son correctos Usando la clase User
-            temp_user = User(None, None, None, None, None, None)
-            validated_user = temp_user.validate_user(username, encrypt_password(password))
-            if validated_user:
-                print("Inicio de sesión correcto")
-                self.user = validated_user  # Guarda el usuario validado en self.user
-                self.root.current = 'main'
-                self.mostrar_historial()
-
-                self.username = self.get_username_from_db()
-                self.vehicles = self.get_vehicles_from_db()
-                self.quedadas_organizadas = self.get_quedadas_organizadas_from_db()
-                self.quedadas_visitadas = self.get_quedadas_visitadas_from_db()
-                self.best_quedada = self.get_best_quedada_from_db()
-                self.swiper = self.root.get_screen('main').ids.swiper
-                self.swipervehiculos()
-
-                if self.best_quedada:
-                    quedada_card = MyQuedadaCard(image_source='vehiculosnuevo.jpeg',
-                                                 quedada_name=self.best_quedada[1],
-                                                 location=f"{self.best_quedada[5]}, {self.best_quedada[6]}",
-                                                 date=self.best_quedada[2].strftime("%d/%m/%Y"),
-                                                 participants=f"Participantes: {self.best_quedada[3]}")
-                    self.root.get_screen('main').ids.best_quedada_box.add_widget(quedada_card)
-
-            else:
-                self.root.get_screen('login').ids.error_username.opacity = 100
+            self.show_dialog("Error", "Usuario o contraseña incorrectos")
 
 ####### REGISTRO #######################################################################################################
 
     def next1_singin(self):
-
-        if not self.root.get_screen('singin').ids.nombre.text or not self.root.get_screen('singin').ids.apellidos.text or not self.root.get_screen('singin').ids.username.text:
-            # Si alguno de los campos está vacío, agitar el botón y salir del método
-            anim = Animation(x=self.root.get_screen('singin').ids.nombre.x + 10, duration=0.1) + Animation(x=self.root.get_screen('singin').ids.nombre.x - 10, duration=0.1)
+        screen = self.root.get_screen('singin')
+        if not screen.ids.nombre.text or not screen.ids.apellidos.text or not screen.ids.username.text:
+            anim = Animation(x=screen.ids.next1.x + 10, duration=0.1) + Animation(x=screen.ids.next1.x - 10,
+                                                                                  duration=0.1)
             anim.repeat = 3
-            anim.start(self.root.get_screen('singin').ids.next1)
+            anim.start(screen.ids.next1)
+            self.show_dialog("Error", "Todos los campos son obligatorios")
             return
-        if exist_user(self.root.get_screen('singin').ids.username.text):
-            self.root.get_screen('singin').ids.error_username.opacity = 100
+        if exist_user(screen.ids.username.text):
+            self.show_dialog("Error", "El nombre de usuario ya existe")
             return
-        else:
-            self.root.get_screen('singin').ids.error_username.opacity = 0
-
-
-        self.root.get_screen('singin').ids.slide.load_next(mode="next")
-        self.root.get_screen('singin').ids.icon1_progreso.text_color = self.theme_cls.primary_color
+        screen.ids.slide.load_next(mode="next")
+        screen.ids.icon1_progreso.text_color = self.theme_cls.primary_color
         anim = Animation(value=100, duration=1)
-        anim.start(self.root.get_screen('singin').ids.progress1)
-        self.root.get_screen('singin').ids.icon1_progreso.icon = "check-circle"
+        anim.start(screen.ids.progress1)
+        screen.ids.icon1_progreso.icon = "check-circle"
 
     def next2_singin(self):
-
-        if not self.root.get_screen('singin').ids.email.text or not self.root.get_screen('singin').ids.telefono.text or not self.root.get_screen('singin').ids.cp.text:
-            # Si alguno de los campos está vacío, agitar el botón y salir del método
-            anim = Animation(x=self.root.get_screen('singin').ids.nombre.x + 10, duration=0.1) + Animation(x=self.root.get_screen('singin').ids.nombre.x - 10,duration=0.1)
+        screen = self.root.get_screen('singin')
+        if not screen.ids.email.text or not screen.ids.telefono.text or not screen.ids.cp.text:
+            anim = Animation(x=screen.ids.next2.x + 10, duration=0.1) + Animation(x=screen.ids.next2.x - 10,
+                                                                                  duration=0.1)
             anim.repeat = 3
-            anim.start(self.root.get_screen('singin').ids.next2)
+            anim.start(screen.ids.next2)
+            self.show_dialog("Error", "Todos los campos son obligatorios")
             return
-        if not validate_email(self.root.get_screen('singin').ids.email.text):
-            self.root.get_screen('singin').ids.error_email.opacity = 100
+        if not validate_email(screen.ids.email.text):
+            self.show_dialog("Error", "El correo electrónico no es válido")
             return
-        else:
-            self.root.get_screen('singin').ids.error_email.opacity = 0
-        if not is_valid_phone_number(self.root.get_screen('singin').ids.telefono.text):
-            self.root.get_screen('singin').ids.error_telefono.opacity = 100
+        if not is_valid_phone_number(screen.ids.telefono.text):
+            self.show_dialog("Error", "El número de teléfono no es válido")
             return
-        else:
-            self.root.get_screen('singin').ids.error_telefono.opacity = 0
-        if not is_valid_cp(self.root.get_screen('singin').ids.cp.text):
-            self.root.get_screen('singin').ids.error_cp.opacity = 100
+        if not is_valid_cp(screen.ids.cp.text):
+            self.show_dialog("Error", "El código postal no es válido")
             return
-        else:
-            self.root.get_screen('singin').ids.error_cp.opacity = 0
-        self.root.get_screen('singin').ids.slide.load_next(mode="next")
-        self.root.get_screen('singin').ids.icon2_progreso.text_color = self.theme_cls.primary_color
+        screen.ids.slide.load_next(mode="next")
+        screen.ids.icon2_progreso.text_color = self.theme_cls.primary_color
         anim = Animation(value=100, duration=1)
-        anim.start(self.root.get_screen('singin').ids.progress2)
-        self.root.get_screen('singin').ids.icon2_progreso.icon = "check-circle"
+        anim.start(screen.ids.progress2)
+        screen.ids.icon2_progreso.icon = "check-circle"
 
     def previous1_singin(self):
-        self.root.get_screen('singin').ids.slide.load_previous()
+        screen = self.root.get_screen('singin')
+        screen.ids.slide.load_previous()
         color = self.check_theme()
-        self.root.get_screen('singin').ids.icon1_progreso.text_color = color,color,color,1
+        screen.ids.icon1_progreso.text_color = color, color, color, 1
         anim = Animation(value=0, duration=1)
-        anim.start(self.root.get_screen('singin').ids.progress1)
-        # poner el icon1_progreso en blanco
-        self.root.get_screen('singin').ids.icon1_progreso.icon = "information"
+        anim.start(screen.ids.progress1)
+        screen.ids.icon1_progreso.icon = "information"
 
     def previous2_singin(self):
-        self.root.get_screen('singin').ids.slide.load_previous()
+        screen = self.root.get_screen('singin')
+        screen.ids.slide.load_previous()
         color = self.check_theme()
-        self.root.get_screen('singin').ids.icon2_progreso.text_color = color,color,color,1
+        screen.ids.icon2_progreso.text_color = color, color, color, 1
         anim = Animation(value=0, duration=1)
-        anim.start(self.root.get_screen('singin').ids.progress2)
-        self.root.get_screen('singin').ids.icon2_progreso.icon = "map-marker"
+        anim.start(screen.ids.progress2)
+        screen.ids.icon2_progreso.icon = "map-marker"
 
     def comprobarContraseñas(self):
-        if is_valid_password(self.root.get_screen('singin').ids.password.text):
-            self.root.get_screen('singin').ids.error_password.opacity = 0
-        else:
-            self.root.get_screen('singin').ids.error_password.opacity = 100
+        screen = self.root.get_screen('singin')
+        if not is_valid_password(screen.ids.password.text):
+            self.show_dialog("Error", "La contraseña no cumple los requisitos, debe contener una mayúscula, una minúscula, un número, un carácter especial y al menos 8 caracteres")
             return
-
-        if self.root.get_screen('singin').ids.password.text != self.root.get_screen('singin').ids.confirm_password.text:
-            self.root.get_screen('singin').ids.error_confirm_password.opacity = 100
+        if screen.ids.password.text != screen.ids.confirm_password.text:
+            self.show_dialog("Error", "Las contraseñas no coinciden")
             return
-        else:
-            self.root.get_screen('singin').ids.error_confirm_password.opacity = 0
-
-        id_user = registrar(self.root.get_screen('singin').ids.email.text, self.root.get_screen('singin').ids.password.text, self.root.get_screen('singin').ids.username.text,
-                  self.root.get_screen('singin').ids.nombre.text, self.root.get_screen('singin').ids.apellidos.text, self.root.get_screen('singin').ids.cp.text, self.root.get_screen('singin').ids.telefono.text)
-
-        self.user= User(None, None, None, None, None, id_user).get_user()
-
+        id_user = registrar(screen.ids.email.text, screen.ids.password.text, screen.ids.username.text,
+                            screen.ids.nombre.text, screen.ids.apellidos.text, screen.ids.cp.text,
+                            screen.ids.telefono.text)
+        self.user = User(None, None, None, None, None, id_user).get_user()
         self.root.current = 'main'
 
 
