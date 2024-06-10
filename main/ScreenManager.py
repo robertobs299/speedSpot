@@ -4,6 +4,7 @@ import urllib
 import urllib.request
 import paramiko
 from kivy.clock import Clock
+from kivy.properties import StringProperty, ListProperty, NumericProperty
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.bubble import Bubble
 from kivy_garden.mapview import MapView, MapMarkerPopup
@@ -15,6 +16,8 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivy.metrics import dp
 from kivymd.uix.pickers import MDTimePicker, MDDatePicker
+from kivymd.uix.swiper import MDSwiperItem
+
 from main.Clases.Quedada import Quedada, Quedada2
 import hashlib
 from kivy.animation import Animation
@@ -23,6 +26,7 @@ from kivy.lang import Builder
 from kivy.uix.image import Image, Loader, AsyncImage
 from main.Clases import conexion
 from main.Clases.User import User
+from main.Clases.Vehiculo import Vehiculo
 
 
 ###### REGISTRO #######################################################################################################
@@ -209,9 +213,23 @@ def encrypt_password(password):
     password_hash = hashlib.sha256(password_bytes).hexdigest()
     return password_hash
 
+class MyCard(MDSwiperItem):
+    blanco = StringProperty('')
+    image_source = StringProperty('')
+    vehicle_name = StringProperty('')
+    vehicle_year = StringProperty('')
+    vehicle_power = StringProperty('')
 
 
+class MyQuedadaCard(MDCard):
+    image_source = StringProperty('')
+    quedada_name = StringProperty('')
+    location = StringProperty('')
+    date = StringProperty('')
+    participants = StringProperty('')
 
+class AddVehicleDialog(MDBoxLayout):
+    pass
 
 
 class MyApp(MDApp):
@@ -219,6 +237,12 @@ class MyApp(MDApp):
     dark_theme = True
     current_id_quedada = 0
     confirm_dialog = None
+    username = StringProperty()
+    vehicles = ListProperty([])
+    quedadas_organizadas = NumericProperty(0)
+    quedadas_visitadas = NumericProperty(0)
+    best_quedada = ListProperty([])
+    lista_marcas = Vehiculo.get_marca_options()
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Amber"
@@ -727,6 +751,23 @@ class MyApp(MDApp):
                 self.user = validated_user  # Guarda el usuario validado en self.user
                 self.root.current = 'main'
                 self.mostrar_historial()
+
+                self.username = self.get_username_from_db()
+                self.vehicles = self.get_vehicles_from_db()
+                self.quedadas_organizadas = self.get_quedadas_organizadas_from_db()
+                self.quedadas_visitadas = self.get_quedadas_visitadas_from_db()
+                self.best_quedada = self.get_best_quedada_from_db()
+                self.swiper = self.root.get_screen('main').ids.swiper
+                self.swipervehiculos()
+
+                if self.best_quedada:
+                    quedada_card = MyQuedadaCard(image_source='vehiculosnuevo.jpeg',
+                                                 quedada_name=self.best_quedada[1],
+                                                 location=f"{self.best_quedada[5]}, {self.best_quedada[6]}",
+                                                 date=self.best_quedada[2].strftime("%d/%m/%Y"),
+                                                 participants=f"Participantes: {self.best_quedada[3]}")
+                    self.root.get_screen('main').ids.best_quedada_box.add_widget(quedada_card)
+
             else:
                 self.root.get_screen('login').ids.error_username.opacity = 100
 
@@ -1033,5 +1074,79 @@ class MyApp(MDApp):
             signup_button = self.root.get_screen('ver_quedada').ids.signup_button
             signup_button.text = 'Desapuntarse'
             signup_button.md_bg_color = (1, 0, 0, 1)  # Rojo
+
+
+
+###########INFORMACION DEL USUARIO######################################################################################
+    def swipervehiculos(self, *args):
+        self.vehicles = self.get_vehicles_from_db()
+
+        # Limpiar el carrusel
+        self.swiper.clear_widgets()
+
+        print(f'Vehículos: {self.vehicles}')  # Línea de depuración
+        for vehicle in self.vehicles:
+            marca, modelo, anio, cv = vehicle
+            vehicle_card = MyCard(
+                blanco='‎ ',
+                image_source='cbr.png',  # Usa una imagen predeterminada para los vehículos
+                vehicle_name=f'{marca} {modelo}',
+                vehicle_year=f'Año: {anio}',
+                vehicle_power=f'CV: {cv}'  # Puedes actualizar esto si tienes la información de la potencia
+            )
+            self.swiper.add_widget(vehicle_card)
+        # Añade la tarjeta de 'Añadir vehículo' después de mostrar todos los vehículos existentes
+        vehicle_card = MyCard(
+            blanco='‎ ',
+            image_source='vehiculosnuevo.jpeg',  # Usa una imagen predeterminada para los vehículos
+            vehicle_name='Añadir vehículo',
+            vehicle_year='',
+            vehicle_power=''
+        )
+        self.swiper.add_widget(vehicle_card)
+
+    def show_add_vehicle_dialog(self):
+        self.dialog = MDDialog(
+            type="custom",
+            size_hint=(0.8, 1),
+            content_cls=AddVehicleDialog(),
+            buttons=[
+                MDRaisedButton(text="CANCELAR", on_release=self.close_dialog),
+                MDRaisedButton(
+                    text="AÑADIR",
+                    on_release=lambda x: (self.add_vehicle_to_db(), self.swipervehiculos())
+                )]
+        )
+        self.dialog.open()
+
+    def add_vehicle_to_db(self, *args):
+        content = self.dialog.content_cls
+        marca = content.ids.marca.text
+        modelo = content.ids.modelo.text
+        anio = content.ids.anio.text
+        cv = content.ids.cv.text
+
+        # Añadir lógica para insertar el vehículo en la base de datos
+        Vehiculo.add_vehicle(self.user.id, marca, modelo, anio, cv)
+
+        self.close_dialog()
+
+
+    def get_username_from_db(self):
+        username = User.get_username(self.user.id)
+        return f'@{username}'
+
+    def get_vehicles_from_db(self):
+        return Vehiculo.get_user_vehicles(self.user.id)
+
+    def get_quedadas_organizadas_from_db(self):
+        return Quedada.get_quedadas_organizadas(self.user.id)
+
+    def get_quedadas_visitadas_from_db(self):
+        return Quedada.get_quedadas_visitadas(self.user.id)
+
+    def get_best_quedada_from_db(self):
+        return Quedada.get_best_quedada(self.user.id)
+
 if __name__ == '__main__':
     MyApp().run()

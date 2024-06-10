@@ -138,6 +138,58 @@ class Quedada:
         conn.commit()
         conn.close()
 
+    @staticmethod
+    def get_quedadas_organizadas(user_id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM Quedada WHERE user_organiza = %s", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        return result[0] if result else 0
+
+    @staticmethod
+    def get_quedadas_visitadas(user_id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM Asiste WHERE user_id = %s", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        return result[0] if result else 0
+
+    @staticmethod
+    def get_best_quedada(user_id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+
+        query = """
+        SELECT q.id_quedada, q.nombre, q.fecha, q.numero_personas, f.enlace_foto, d.direccion, p.localidad
+        FROM Quedada q
+        JOIN Fotos_quedada f ON q.id_quedada = f.quedada_id
+        JOIN Direccion d ON q.direccion = d.id_direccion
+        JOIN Postal_code p ON d.cp = p.id_cp
+        WHERE q.user_organiza = %s
+        ORDER BY q.numero_personas DESC
+        LIMIT 1
+        """
+        cursor.execute(query, (user_id,))
+        result = cursor.fetchone()
+
+        query2 = """
+            SELECT q.id_quedada, q.nombre, q.fecha, q.numero_personas, f.enlace_foto, d.direccion, p.localidad
+            FROM Quedada q
+            JOIN Fotos_quedada f ON q.id_quedada = f.quedada_id
+            JOIN Direccion d ON q.direccion = d.id_direccion
+            JOIN Postal_code p ON d.cp = p.id_cp
+            ORDER BY q.numero_personas DESC
+            LIMIT 1
+        """
+        cursor.execute(query2)
+        result2 = cursor.fetchone()
+
+        conn.close()
+
+        return result if result else result2
+
 #Clase que contiene informacion extra de otras tablas
 class Quedada2:
     def __init__(self, id_quedada, nombre, descripcion, user_organiza, fecha, hora, cp, tipo_via, direccion, max_personas, numero_personas, organizador_nombre, organizador_apellidos):

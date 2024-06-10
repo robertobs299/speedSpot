@@ -68,3 +68,14 @@ class User:
             return False
         return True
 
+    @staticmethod
+    def get_username(user_id):
+        conn = conexion.connect_to_database()
+        cursor = conn.cursor()
+        cursor.execute("SELECT username FROM Login WHERE id_user = %s", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        if result:
+            return result[0]
+        return None
+
