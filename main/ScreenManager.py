@@ -770,6 +770,23 @@ class MyApp(MDApp):
             self.user = validated_user
             self.root.current = 'main'
             self.mostrar_historial()
+
+            self.username = self.get_username_from_db()
+            self.vehicles = self.get_vehicles_from_db()
+            self.quedadas_organizadas = self.get_quedadas_organizadas_from_db()
+            self.quedadas_visitadas = self.get_quedadas_visitadas_from_db()
+            self.best_quedada = self.get_best_quedada_from_db()
+            self.swiper = self.root.get_screen('main').ids.swiper
+            self.swipervehiculos()
+
+            if self.best_quedada:
+                quedada_card = MyQuedadaCard(image_source='vehiculosnuevo.jpeg',
+                                             quedada_name=self.best_quedada[1],
+                                             location=f"{self.best_quedada[5]}, {self.best_quedada[6]}",
+                                             date=self.best_quedada[2].strftime("%d/%m/%Y"),
+                                             participants=f"Participantes: {self.best_quedada[3]}")
+                self.root.get_screen('main').ids.best_quedada_box.add_widget(quedada_card)
+
         else:
             self.show_dialog("Error", "Usuario o contraseña incorrectos")
 
@@ -1006,7 +1023,7 @@ class MyApp(MDApp):
                 resultado = Quedada2.unirse(self.user.id,self.current_id_quedada)  # Suponiendo que 6 es el user_id del usuario actual
                 print(f"Resultado de inscribirse: {resultado}")
                 # Incrementar el número de personas en la quedada
-                num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(": ")[1])
+                num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(":")[1])
                 self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas: " + str(
                     num_personas + 1)
             else:
@@ -1044,7 +1061,7 @@ class MyApp(MDApp):
         resultado = Quedada2.desapuntarse(self.user.id, self.current_id_quedada)  # Suponiendo que 6 es el user_id del usuario actual
         print(f"Resultado de desapuntarse: {resultado}")
         # Decrementar el número de personas en la quedada
-        num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(": ")[1])
+        num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(":")[1])
         self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas: " + str(num_personas - 1)
         self.close_dialog(None)
 
