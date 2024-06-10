@@ -250,10 +250,15 @@ class MyApp(MDApp):
 
         self.dark_theme = not self.dark_theme  # Cambia el estado del tema
     def on_start(self):
+        # Limpiar la lista de quedadas existentes
+        self.root.get_screen('main').ids.card_list.clear_widgets()
+
+        # Obtener las últimas cinco quedadas
         quedadas = Quedada.get_last_five()
+
+        # Agregar cada quedada a la pantalla
         for quedada in quedadas:
             self.add_card(quedada)
-
     def mostrar_historial(self):
         # Limpiar la lista de quedadas existentes
         self.root.get_screen('main').ids.historial_list.clear_widgets()
@@ -643,11 +648,20 @@ class MyApp(MDApp):
         self.reset_and_go_to_first_screen()
         if self.ruta_imagen != None:
             Quedada.updateFotoQuedada(idQuedada,self.ruta_imagen)
-
+        # Actualizar la pantalla de quedadas
+        self.on_start()
     def file_manager_open(self):
         self.file_manager.show('/')
 
     def select_path(self, path):
+        self.exit_manager()
+        # ver en que pantalla esta y si esta en main llamar a select_path_crear_quedada y si esta en info_quedada llamar a select_path_info_quedada
+        if self.root.current == 'main':
+            self.select_path_crear_quedada(path)
+        if self.root.current == 'info_quedada':
+            self.select_path_info_quedada(path)
+
+    def select_path_crear_quedada(self, path):
         self.exit_manager()
         self.upload_image_to_server_and_save_to_db(path)
 
@@ -874,16 +888,16 @@ class MyApp(MDApp):
             carousel.index = 0  # Volver a la primera diapositiva
         else:
             carousel.load_next()
-#Metodo que permite abrir el gestor de archivos
-    def file_manager_open(self):
-        self.file_manager.show('/')
+
+
 #Metodo que permite almacenar la ruta del archivo
-    def select_path(self, path):
+    def select_path_info_quedada(self, path):
         self.exit_manager()
         self.add_image_to_carousel_and_db(path)
-#Metodo que cierra el gestor de archivos
-    def exit_manager(self, *args):
-        self.file_manager.close()
+    def add_image_to_carousel_and_db(self, path):
+        image = AsyncImage(source=path)
+        self.root.ids.carousel.add_widget(image)
+        self.upload_image_to_server_and_save_to_db(path)
 #Metodo que añade una imagen al carrusel y la sube al servidor
     def add_image_to_carousel(self, image_path):
         # Crear una nueva imagen
@@ -925,7 +939,7 @@ class MyApp(MDApp):
         conn.close()
 
         if not fotos:
-            default_image = AsyncImage(source='default.jpeg')
+            default_image = AsyncImage(source='foto_default.jpeg')
             self.root.get_screen('ver_quedada').ids.carousel.add_widget(default_image)
         else:
             for foto in fotos:
