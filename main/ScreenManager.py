@@ -997,7 +997,7 @@ class MyApp(MDApp):
         resultado = Quedada2.desapuntarse(self.user.id, self.current_id_quedada)  # Suponiendo que 6 es el user_id del usuario actual
         print(f"Resultado de desapuntarse: {resultado}")
         # Decrementar el número de personas en la quedada
-        num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(": ")[1])
+        num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(":")[1])
         self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas: " + str(num_personas - 1)
         self.close_dialog(None)
 
