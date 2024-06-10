@@ -439,6 +439,7 @@ class MyApp(MDApp):
         self.root.get_screen('ver_quedada').ids.max_personas.text = "Max. personas:"
         self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas:"
         self.change_screen('main')
+        self.clear_carousel()
 
 
     def ver_id_quedada(self,instance):
@@ -676,7 +677,7 @@ class MyApp(MDApp):
         # ver en que pantalla esta y si esta en main llamar a select_path_crear_quedada y si esta en info_quedada llamar a select_path_info_quedada
         if self.root.current == 'main':
             self.select_path_crear_quedada(path)
-        if self.root.current == 'info_quedada':
+        if self.root.current == 'ver_quedada':
             self.select_path_info_quedada(path)
 
     def select_path_crear_quedada(self, path):
@@ -909,7 +910,14 @@ class MyApp(MDApp):
 #Metodo que permite almacenar la ruta del archivo
     def select_path_info_quedada(self, path):
         self.exit_manager()
-        self.add_image_to_carousel_and_db(path)
+        self.add_image_to_carousel(path)
+        self.upload_image_to_server_and_save_to_db_info(path)
+    def clear_carousel(self):
+        # Obtener el carrusel
+        carousel = self.root.get_screen('ver_quedada').ids.carousel
+
+        # Limpiar el carrusel
+        carousel.clear_widgets()
 #Metodo que añade una imagen al carrusel y la sube al servidor
     def add_image_to_carousel(self, image_path):
         # Crear una nueva imagen
