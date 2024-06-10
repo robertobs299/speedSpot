@@ -869,8 +869,11 @@ class MyApp(MDApp):
 
 #Actualiza la galeria de fotos para que se vayan mostrando
     def change_slide(self, dt):
-        if len(self.root.get_screen('ver_quedada').ids.carousel.slides) > 1:
-            self.root.get_screen('ver_quedada').ids.carousel.load_next()
+        carousel = self.root.get_screen('ver_quedada').ids.carousel
+        if carousel.index == len(carousel.slides) - 1:
+            carousel.index = 0  # Volver a la primera diapositiva
+        else:
+            carousel.load_next()
 #Metodo que permite abrir el gestor de archivos
     def file_manager_open(self):
         self.file_manager.show('/')
