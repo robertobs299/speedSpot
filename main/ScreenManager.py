@@ -259,6 +259,7 @@ class MyApp(MDApp):
         # Agregar cada quedada a la pantalla
         for quedada in quedadas:
             self.add_card(quedada)
+
     def mostrar_historial(self):
         # Limpiar la lista de quedadas existentes
         self.root.get_screen('main').ids.historial_list.clear_widgets()
@@ -426,6 +427,20 @@ class MyApp(MDApp):
         self.root.get_screen('main').ids.historial_list.add_widget(card_user)
         self.root.get_screen('main').ids.historial_list.height += card_user.height + dp(15)  # Update height of BoxLayout
 
+    def reinicio_info_quedada(self):
+        # Restablecer todos los campos de entrada
+
+        self.root.get_screen('ver_quedada').ids.nombre.text = "Nombre:"
+        self.root.get_screen('ver_quedada').ids.descripcion.text = "Descripción:"
+        self.root.get_screen('ver_quedada').ids.user_organiza.text = "Organizador:"
+        self.root.get_screen('ver_quedada').ids.fecha.text = "Fecha:"
+        self.root.get_screen('ver_quedada').ids.hora.text = "Hora:"
+        self.root.get_screen('ver_quedada').ids.direccion.text = "Dirección:"
+        self.root.get_screen('ver_quedada').ids.max_personas.text = "Max. personas:"
+        self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas:"
+        self.change_screen('main')
+
+
     def ver_id_quedada(self,instance):
         parent_card = instance.parent.parent.parent
         card_data = parent_card.data
@@ -533,8 +548,6 @@ class MyApp(MDApp):
         self.previous1()
 
 
-
-
     def show_time_picker(self):
         time_picker = MDTimePicker()
         time_picker.bind(on_save=self.on_time_save, on_cancel=self.on_time_cancel)
@@ -634,22 +647,27 @@ class MyApp(MDApp):
     def crear_quedada(self):
         id_cp = obtener_id_cp(self.root.get_screen('main').ids.cp.text)
 
-        id_direccion = insertar_direccion(self.root.get_screen('main').ids.tipo_via.text, self.root.get_screen('main').ids.direccion.text, id_cp,
+        id_direccion = insertar_direccion(self.root.get_screen('main').ids.tipo_via.text,
+                                          self.root.get_screen('main').ids.direccion.text, id_cp,
                                           self.root.get_screen('main').ids.numero.text)
 
-        id_corrdenadas = insertarCoordenadas(self.root.get_screen('main').ids.map_view.lat, self.root.get_screen('main').ids.map_view.lon)
+        id_corrdenadas = insertarCoordenadas(self.root.get_screen('main').ids.map_view.lat,
+                                             self.root.get_screen('main').ids.map_view.lon)
 
         actualizar_coordenadas_direccion(id_direccion, id_corrdenadas)
 
-        quedada = Quedada(None, self.root.get_screen('main').ids.nombre.text, self.root.get_screen('main').ids.descripcion.text, self.user.id, self.fecha, self.hora,
+        quedada = Quedada(None, self.root.get_screen('main').ids.nombre.text,
+                          self.root.get_screen('main').ids.descripcion.text, self.user.id, self.fecha, self.hora,
                           id_direccion, self.root.get_screen('main').ids.max_personas.text, 0, 1, self.ruta_imagen)
 
         idQuedada = quedada.insertar_quedada()
         self.reset_and_go_to_first_screen()
         if self.ruta_imagen != None:
-            Quedada.updateFotoQuedada(idQuedada,self.ruta_imagen)
+            Quedada.updateFotoQuedada(idQuedada, self.ruta_imagen)
+
         # Actualizar la pantalla de quedadas
         self.on_start()
+
     def file_manager_open(self):
         self.file_manager.show('/')
 
@@ -883,21 +901,15 @@ class MyApp(MDApp):
 
 #Actualiza la galeria de fotos para que se vayan mostrando
     def change_slide(self, dt):
-        carousel = self.root.get_screen('ver_quedada').ids.carousel
-        if carousel.index == len(carousel.slides) - 1:
-            carousel.index = 0  # Volver a la primera diapositiva
+        carrousel = self.root.get_screen('ver_quedada').ids.carousel
+        if carrousel.index == len(carrousel.slides) - 1:
+            carrousel.index = 0
         else:
-            carousel.load_next()
-
-
+            carrousel.load_next()
 #Metodo que permite almacenar la ruta del archivo
     def select_path_info_quedada(self, path):
         self.exit_manager()
         self.add_image_to_carousel_and_db(path)
-    def add_image_to_carousel_and_db(self, path):
-        image = AsyncImage(source=path)
-        self.root.ids.carousel.add_widget(image)
-        self.upload_image_to_server_and_save_to_db(path)
 #Metodo que añade una imagen al carrusel y la sube al servidor
     def add_image_to_carousel(self, image_path):
         # Crear una nueva imagen
@@ -939,30 +951,13 @@ class MyApp(MDApp):
         conn.close()
 
         if not fotos:
-            default_image = AsyncImage(source='foto_default.jpeg')
+            default_image = AsyncImage(source='default.jpeg')
             self.root.get_screen('ver_quedada').ids.carousel.add_widget(default_image)
         else:
             for foto in fotos:
                 enlace_foto = foto[0]
                 image = AsyncImage(source=enlace_foto)
                 self.root.get_screen('ver_quedada').ids.carousel.add_widget(image)
-
-    def reinicio_info_quedada(self):
-        # Restablecer todos los campos de entrada
-
-        self.root.get_screen('ver_quedada').ids.nombre.text = "Nombre:"
-        self.root.get_screen('ver_quedada').ids.descripcion.text = "Descripción:"
-        self.root.get_screen('ver_quedada').ids.user_organiza.text = "Organizador:"
-        self.root.get_screen('ver_quedada').ids.fecha.text = "Fecha:"
-        self.root.get_screen('ver_quedada').ids.hora.text = "Hora:"
-        self.root.get_screen('ver_quedada').ids.direccion.text = "Dirección:"
-        self.root.get_screen('ver_quedada').ids.max_personas.text = "Max. personas:"
-        self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas:"
-
-        self.change_screen('main')
-
-        # Cambiar a la primera pantalla del registro de quedadas
-
 #Metodo que permite inscribirse o desapuntarse de una quedada
     def toggle_sign_up(self, instance):
         if instance.text == 'Inscribirse':
@@ -1011,7 +1006,7 @@ class MyApp(MDApp):
         resultado = Quedada2.desapuntarse(self.user.id, self.current_id_quedada)  # Suponiendo que 6 es el user_id del usuario actual
         print(f"Resultado de desapuntarse: {resultado}")
         # Decrementar el número de personas en la quedada
-        num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(":")[1])
+        num_personas = int(self.root.get_screen('ver_quedada').ids.numero_personas.text.split(": ")[1])
         self.root.get_screen('ver_quedada').ids.numero_personas.text = "Número de personas: " + str(num_personas - 1)
         self.close_dialog(None)
 
