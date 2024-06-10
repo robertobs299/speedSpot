@@ -1,2 +1,4 @@
 # speedSpot
-tfg de mierda que me ha tocado hacer
+TFG Realizado por Luis Miguel Gil Calatrava, Roberto Berdmúdez Sevilla y José David Valera Vidal
+
+
